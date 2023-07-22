@@ -8,14 +8,16 @@ from utils import bbox_utils, data_utils, io_utils, train_utils
 from models.ssd_vgg16_architecture import get_model, init_model
 
 
+
 args = io_utils.handle_args()
 if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
-batch_size = 32
+
+batch_size = 4
 epochs = 20
 load_weights = False
-with_voc_2012 = True
+with_voc_2012 = False
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
 #

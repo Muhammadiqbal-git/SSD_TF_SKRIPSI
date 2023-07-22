@@ -25,9 +25,9 @@ def get_model(hyper_params):
     # vgg_model = VGG16(input_shape=(None, None, 3), include_top=False)
     # conv_4_3 = vgg_model.get_layer("block4_conv3").output
     # conv_5_3 = vgg_model.get_layer("block5_conv3").output
-    input = Input(shape=(None, None, 3), name='input')
+    input_ = Input(shape=(None, None, 3), name='input')
     # conv1 block
-    conv1_1 = Conv2D(64, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv1_1")(input)
+    conv1_1 = Conv2D(64, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv1_1")(input_)
     conv1_2 = Conv2D(64, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv1_2")(conv1_1)
     pool1 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool1")(conv1_2)
     # conv2 block
@@ -74,7 +74,7 @@ def get_model(hyper_params):
     # L2 normalization for each location in the feature map
     #
     pred_deltas, pred_labels = get_head_from_outputs(hyper_params, [conv4_3, conv7, conv8_2, conv9_2, conv10_2, conv11_2])
-    return Model(inputs=input, outputs=[pred_deltas, pred_labels])
+    return Model(inputs=input_, outputs=[pred_deltas, pred_labels])
 
 def init_model(model):
     """Initiate model with dummy data for load weight with optimizer state and graph construction
