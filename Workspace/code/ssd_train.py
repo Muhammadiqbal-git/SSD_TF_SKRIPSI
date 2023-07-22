@@ -7,7 +7,6 @@ from ssd_loss import SSDLoss
 from utils import bbox_utils, data_utils, io_utils, train_utils
 from models.ssd_vgg16_architecture import get_model, init_model
 
-
 args = io_utils.handle_args()
 if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
@@ -69,7 +68,7 @@ checkpoint_callback = ModelCheckpoint(ssd_model_path, monitor="val_loss", save_b
 tensorboard_callback = TensorBoard(log_dir=ssd_log_path)
 learning_rate_callback = LearningRateScheduler(train_utils.scheduler, verbose=0)
 
-step_size_train = train_utils.get_step_size(train_total_items, batch_size)
+step_size_train = train_utils.get_step_size(train_total_items, batgch_size)
 step_size_val = train_utils.get_step_size(val_total_items, batch_size)
 ssd_model.fit(ssd_train_feed,
               steps_per_epoch=step_size_train,
