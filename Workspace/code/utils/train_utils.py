@@ -15,7 +15,7 @@ SSD = {
     },
 }
 
-def get_hyper_params(backbone, **kwargs):
+def get_hyper_params(backbone="vgg16", **kwargs):
     """Generating hyper params in a dynamic way.
     inputs:
         **kwargs : any value could be updated in the hyper_params

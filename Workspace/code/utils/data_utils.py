@@ -29,7 +29,7 @@ def preprocessing(image_data, final_height, final_width, augmentation_fn=None, e
         img, gt_boxes = augmentation_fn(img, gt_boxes)
     return img, gt_boxes, gt_labels
 
-def get_dataset(name, split, data_dir="~/tensorflow_datasets"):
+def get_dataset(name, split, data_dir):
     """Get tensorflow dataset split and info.
     inputs:
         name = name of the dataset, voc/2007, voc/2012, etc.
@@ -56,6 +56,9 @@ def get_total_item_size(info, split):
     assert split in ["train", "train+validation", "validation", "test"]
     if split == "train+validation":
         return info.splits["train"].num_examples + info.splits["validation"].num_examples
+    print(info.splits["train"].num_examples)
+    print(info.splits["validation"].num_examples)
+
     return info.splits[split].num_examples
 
 def get_labels(info):

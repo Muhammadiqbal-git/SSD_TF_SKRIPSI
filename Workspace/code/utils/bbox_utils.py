@@ -115,7 +115,7 @@ def scale_for_k_feature_map(k, m=6, scale_min=0.2, scale_max=0.9):
     """Calculating scale value for kth feature map based on original SSD paper.
     Args:
         k (scalar): kth feature map for scale calculation
-        m (scalar): length of all using feature maps for detections, Default 6 for ssd300
+        m (scalar): length of all using feature maps for detections. Default 6 for ssd300
 
     Returns:
         scale (scalar): calculated scale value for given kth

@@ -1,8 +1,9 @@
 import tensorflow as tf
-from keras.layers import Layer, Input, Conv2D, MaxPooL2D, Activation
+from keras.layers import Layer, Input, Conv2D, MaxPool2D, Activation
 from keras.models import Model
 from keras.regularizers import L2
 from keras.applications import VGG16
+from models.prediction_head import get_head_from_outputs
 # header
 
 
@@ -28,26 +29,26 @@ def get_model(hyper_params):
     # conv1 block
     conv1_1 = Conv2D(64, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv1_1")(input)
     conv1_2 = Conv2D(64, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv1_2")(conv1_1)
-    pool1 = MaxPooL2D((2, 2), strides=(2, 2), padding="same", name="pool1")(conv1_2)
+    pool1 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool1")(conv1_2)
     # conv2 block
     conv2_1 = Conv2D(128, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv2_1")(pool1)
     conv2_2 = Conv2D(128, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv2_2")(conv2_1)
-    pooL2 = MaxPooL2D((2, 2), strides=(2, 2), padding="same", name="pooL2")(conv2_2)
+    pooL2 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pooL2")(conv2_2)
     # conv3 block
     conv3_1 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv3_1")(pooL2)
     conv3_2 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv3_2")(conv3_1)
     conv3_3 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv3_3")(conv3_2)
-    pool3 = MaxPooL2D((2, 2), strides=(2, 2), padding="same", name="pool3")(conv3_3)
+    pool3 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool3")(conv3_3)
     # conv4 block
     conv4_1 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_1")(pool3)
     conv4_2 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_2")(conv4_1)
     conv4_3 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_3")(conv4_2)
-    pool4 = MaxPooL2D((2, 2), strides=(2, 2), padding="same", name="pool4")(conv4_3)
+    pool4 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool4")(conv4_3)
     # conv5 block
     conv5_1 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv5_1")(pool4)
     conv5_2 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv5_2")(conv5_1)
     conv5_3 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv5_3")(conv5_2)
-    pool5 = MaxPooL2D((3, 3), strides=(1, 1), padding="same", name="pool5")(conv5_3)
+    pool5 = MaxPool2D((3, 3), strides=(1, 1), padding="same", name="pool5")(conv5_3)
     # conv6 and conv7 converted from fc6 and fc7 and remove dropouts
     conv6 = Conv2D(1024, (3, 3), dilation_rate=6, padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv6")(pool5)
     conv7 = Conv2D(1024, (1, 1), strides=(1, 1), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv7")(conv6)
@@ -74,3 +75,12 @@ def get_model(hyper_params):
     #
     pred_deltas, pred_labels = get_head_from_outputs(hyper_params, [conv4_3, conv7, conv8_2, conv9_2, conv10_2, conv11_2])
     return Model(inputs=input, outputs=[pred_deltas, pred_labels])
+
+def init_model(model):
+    """Initiate model with dummy data for load weight with optimizer state and graph construction
+
+    Args:
+        model (tf.keras.Model): _description_
+    """
+    print('s')
+    model(tf.random.uniform((1, 300, 300, 3)))
