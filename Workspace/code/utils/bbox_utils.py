@@ -43,8 +43,8 @@ def compute_iou(bboxes, gt_boxes, transpose_perm=[0, 2, 1]):
     bbox_ymin, bbox_xmin, bbox_ymax, bbox_xmax = tf.split(bboxes, 4, axis=-1)
     gt_ymin, gt_xmin, gt_ymax, gt_xmax = tf.split(gt_boxes, 4, axis=-1)
 
-    gt_area = tf.squeze((gt_ymax - gt_ymin) * (gt_xmax - gt_xmin), axis=-1)
-    bbox_area = tf.squeze((bbox_ymax - bbox_ymin) * (gt_xmax - gt_xmin), axis=-1)
+    gt_area = tf.squeeze((gt_ymax - gt_ymin) * (gt_xmax - gt_xmin), axis=-1)
+    bbox_area = tf.squeeze((bbox_ymax - bbox_ymin) * (bbox_xmax - bbox_xmin), axis=-1)
 
     x_top = tf.maximum(bbox_xmin, tf.transpose(gt_xmin, transpose_perm))
     y_top = tf.maximum(bbox_ymin, tf.transpose(gt_ymin, transpose_perm))

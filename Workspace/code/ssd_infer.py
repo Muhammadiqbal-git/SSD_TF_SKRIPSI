@@ -49,7 +49,7 @@ prior_boxes = bbox_utils.generate_prior_boxes(hyper_params["feature_map_shapes"]
 ssd_decoder_model = get_decoder_model(ssd_model, prior_boxes, hyper_params)
 
 step_size = train_utils.get_step_size(total_items, batch_size)
-pred_bboxes, pred_labels, pred_scores = ssd_decoder_model.predict(test_data, steps=step_size, verbose=1)
+pred_bboxes, pred_scores, pred_labels = ssd_decoder_model.predict(test_data, steps=step_size, verbose=1)
 
 if evaluate:
     eval_utils.evaluate_predictions(test_data, pred_bboxes, pred_labels, pred_scores, labels, batch_size)

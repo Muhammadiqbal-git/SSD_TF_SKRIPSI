@@ -3,6 +3,7 @@ import argparse
 import tensorflow as tf
 from datetime import datetime
 
+
 def get_log_path(model_type, custom_postfix=""):
     """Generating log path from model_type value for tensorboard.
     inputs:
@@ -13,6 +14,7 @@ def get_log_path(model_type, custom_postfix=""):
         log_path = tensorboard log path, for example: "logs/mobilenet_v2/{date}"
     """
     return "logs/{}{}/{}".format(model_type, custom_postfix, datetime.now().strftime("%Y%m%d-%H%M%S"))
+
 
 def get_model_path(model_type, custom_path=None):
     """Generating model path from model_type value for save/load model weights.
@@ -26,6 +28,7 @@ def get_model_path(model_type, custom_path=None):
     rel_path = os.path.relpath(os.path.join(os.getcwd(), os.pardir))
     main_path = os.path.join(rel_path, "trained_ssd")
     if custom_path:
+        assert isinstance(custom_path, str), "'custom_path' argument must have String data type"
         main_path = custom_path
 
     if not os.path.exists(main_path):
@@ -33,11 +36,12 @@ def get_model_path(model_type, custom_path=None):
     model_path = os.path.join(main_path, "ssd_{}_model_weights.h5".format(model_type))
     return model_path
 
+
 def handle_args():
     """Handling of command line arguments using argparse library.
 
     outputs:
-        args = parsed command line arguments
+        args : parsed command line arguments
     """
     parser = argparse.ArgumentParser(description="SSD: Single Shot MultiBox Detector Implementation")
     parser.add_argument("-handle-gpu", action="store_true", help="Tensorflow 2 GPU compatibility flag")
@@ -48,13 +52,15 @@ def handle_args():
     args = parser.parse_args()
     return args
 
+
 def is_valid_backbone(backbone):
     """Handling control of given backbone is valid or not.
     inputs:
-        backbone = given string from command line
+        backbone : given string from command line
 
     """
     assert backbone in ["mobilenet_v2", "vgg16"]
+
 
 def handle_gpu_compatibility():
     """Handling of GPU issues for cuDNN initialize error and memory issues."""
