@@ -55,16 +55,15 @@ ssd_custom_losses = SSDLoss(hyper_params["neg_pos_ratio"], hyper_params["loc_los
 ssd_model.compile(optimizer=Adam(learning_rate=1e-3),
                   loss=[ssd_custom_losses.loc_loss_fn, ssd_custom_losses.conf_loss_fn])
 init_model(ssd_model)
-
 #
 ssd_model_path = io_utils.get_model_path(backbone)
 if load_weights:
     ssd_model.load_weights(ssd_model_path)
 ssd_log_path = io_utils.get_log_path(backbone)
 # We calculate prior boxes for one time and use it for all operations because of the all images are the same sizes
-prior_boxes = bbox_utils.generate_prior_boxes(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
-ssd_train_feed = train_utils.generator(train_data, prior_boxes, hyper_params)
-ssd_val_feed = train_utils.generator(val_data, prior_boxes, hyper_params)
+anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
+ssd_train_feed = train_utils.generator(train_data, anchors, hyper_params)
+ssd_val_feed = train_utils.generator(val_data, anchors, hyper_params)
 
 checkpoint_callback = ModelCheckpoint(ssd_model_path, monitor="val_loss", save_best_only=True, save_weights_only=True)
 tensorboard_callback = TensorBoard(log_dir=ssd_log_path)

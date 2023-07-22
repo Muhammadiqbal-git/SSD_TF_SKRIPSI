@@ -19,6 +19,8 @@ def preprocessing(image_data, final_height, final_width, augmentation_fn=None, e
     img = image_data["image"]
     gt_boxes = image_data["objects"]["bbox"]
     gt_labels = tf.cast(image_data["objects"]["label"] + 1, tf.int32)
+
+
     img = tf.image.convert_image_dtype(img, tf.float32)
     img = tf.image.resize(img, (final_height, final_width))
     if evaluate:
@@ -42,6 +44,8 @@ def get_dataset(name, split, data_dir):
     """
     assert split in ["train", "train+validation", "validation", "test"]
     dataset, info = tfds.load(name, split=split, data_dir=data_dir, with_info=True)
+    print(dataset)
+    print(info.features['labels'].names)
     return dataset, info
 
 def get_total_item_size(info, split):

@@ -8,8 +8,8 @@ class SSDLoss(object):
     def loc_loss_fn(self, actual_deltas, pred_deltas):
         """Calculating SSD localization loss value for only positive samples.
         inputs:
-            actual_deltas : (batch_size, total_prior_boxes, [delta_y, delta_x, delta_h, delta_w])
-            pred_deltas : (batch_size, total_prior_boxes, [delta_y, delta_x, delta_h, delta_w])
+            actual_deltas : (batch_size, total_anchors, [delta_y, delta_x, delta_h, delta_w])
+            pred_deltas : (batch_size, total_anchors, [delta_y, delta_x, delta_h, delta_w])
 
         outputs:
             loc_loss : localization / regression / bounding box loss value
@@ -35,8 +35,8 @@ class SSDLoss(object):
     def conf_loss_fn(self, actual_labels, pred_labels):
         """Calculating SSD confidence loss value by performing hard negative mining as mentioned in the paper.
         inputs:
-            actual_labels : (batch_size, total_prior_boxes, total_labels)
-            pred_labels : (batch_size, total_prior_boxes, total_labels)
+            actual_labels : (batch_size, total_anchors, total_labels)
+            pred_labels : (batch_size, total_anchors, total_labels)
 
         outputs:
             conf_loss : confidence / class / label loss value

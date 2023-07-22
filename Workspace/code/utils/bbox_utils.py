@@ -56,20 +56,20 @@ def compute_iou(bboxes, gt_boxes, transpose_perm=[0, 2, 1]):
 
     return i_area/u_area
 
-def prop2abs(prior_boxes, deltas):
+def prop2abs(anchors, deltas):
     """Calculating bounding boxes for given bounding box and delta values
 
     Args:
-        prior_boxes (_type_): _description_
+        anchors (_type_): _description_
         deltas (_type_): _description_
 
     Returns:
         _type_: _description_
     """
-    all_pbox_width = prior_boxes[..., 3] - prior_boxes[..., 1]
-    all_pbox_height = prior_boxes[..., 2] - prior_boxes[..., 0]
-    all_pbox_ctr_x = prior_boxes[..., 1] + 0.5 * all_pbox_width
-    all_pbox_ctr_y = prior_boxes[..., 0] + 0.5 * all_pbox_height
+    all_pbox_width = anchors[..., 3] - anchors[..., 1]
+    all_pbox_height = anchors[..., 2] - anchors[..., 0]
+    all_pbox_ctr_x = anchors[..., 1] + 0.5 * all_pbox_width
+    all_pbox_ctr_y = anchors[..., 0] + 0.5 * all_pbox_height
     #
     all_bbox_width = tf.exp(deltas[..., 3]) * all_pbox_width
     all_bbox_height = tf.exp(deltas[..., 2]) * all_pbox_height
@@ -122,43 +122,41 @@ def scale_for_k_feature_map(k, m=6, scale_min=0.2, scale_max=0.9):
     """
     return scale_min + ((scale_max - scale_min) / (m - 1)) * (k - 1)
 
-def generate_base_prior_boxes(aspect_ratios, feature_map_index, total_feature_map):
-    """Generating top left prior boxes for given stride, height and width pairs of different aspect ratios.
-    These prior boxes same with the anchors in Faster-RCNN.
+def generate_base_anchors(aspect_ratios, feature_map_index, total_feature_map):
+    """Generating top left anchors for given stride, height and width pairs of different aspect ratios.
     Args:
         aspect_ratios : for all feature map shapes + 1 for ratio 1
         feature_map_index : nth feature maps for scale calculation
         total_feature_map : length of all using feature map for detections, 6 for ssd300
 
     Returns:
-        base_prior_boxes : (prior_box_count, [y1, x1, y2, x2])
+        base_anchors : (prior_box_count, [y1, x1, y2, x2])
     """
     current_scale = scale_for_k_feature_map(feature_map_index, m=total_feature_map)
     next_scale = scale_for_k_feature_map(feature_map_index + 1, m=total_feature_map)
-    base_prior_boxes = []
+    base_anchors = []
     for aspect_ratio in aspect_ratios:
         height = current_scale / tf.sqrt(aspect_ratio)
         width = current_scale * tf.sqrt(aspect_ratio)
-        base_prior_boxes.append([-height/2, -width/2, height/2, width/2])
+        base_anchors.append([-height/2, -width/2, height/2, width/2])
     # 1 extra pair for ratio 1
     height = width = tf.sqrt(current_scale * next_scale)
-    base_prior_boxes.append([-height/2, -width/2, height/2, width/2])
-    return tf.cast(base_prior_boxes, dtype=tf.float32)
+    base_anchors.append([-height/2, -width/2, height/2, width/2])
+    return tf.cast(base_anchors, dtype=tf.float32)
 
-def generate_prior_boxes(feature_map_shapes, aspect_ratios):
-    """Generating top left prior boxes for given stride, height and width pairs of different aspect ratios.
-    These prior boxes same with the anchors in Faster-RCNN.
+def generate_anchors(feature_map_shapes, aspect_ratios):
+    """Generating top left anchors for given stride, height and width pairs of different aspect ratios.
     Args:
         feature_map_shapes : for all feature map output size
         aspect_ratios : for all feature map shapes + 1 for ratio 1
 
     Returns:
-        prior_boxes : (total_prior_boxes, [y1, x1, y2, x2])
+        anchors : (total_anchors, [y1, x1, y2, x2])
             these values in normalized format between [0, 1]
     """
-    prior_boxes = []
+    anchors = []
     for i, feature_map_shape in enumerate(feature_map_shapes):
-        base_prior_boxes = generate_base_prior_boxes(aspect_ratios[i], i+1, len(feature_map_shapes))
+        base_anchors = generate_base_anchors(aspect_ratios[i], i+1, len(feature_map_shapes))
         #
         stride = 1 / feature_map_shape
         grid_coords = tf.cast(tf.range(0, feature_map_shape) / feature_map_shape + stride / 2, dtype=tf.float32)
@@ -167,12 +165,12 @@ def generate_prior_boxes(feature_map_shapes, aspect_ratios):
         #
         grid_map = tf.stack([flat_grid_y, flat_grid_x, flat_grid_y, flat_grid_x], -1)
         #
-        prior_boxes_for_feature_map = tf.reshape(base_prior_boxes, (1, -1, 4)) + tf.reshape(grid_map, (-1, 1, 4))
-        prior_boxes_for_feature_map = tf.reshape(prior_boxes_for_feature_map, (-1, 4))
+        anchors_for_feature_map = tf.reshape(base_anchors, (1, -1, 4)) + tf.reshape(grid_map, (-1, 1, 4))
+        anchors_for_feature_map = tf.reshape(anchors_for_feature_map, (-1, 4))
         #
-        prior_boxes.append(prior_boxes_for_feature_map)
-    prior_boxes = tf.concat(prior_boxes, axis=0)
-    return tf.clip_by_value(prior_boxes, 0, 1)
+        anchors.append(anchors_for_feature_map)
+    anchors = tf.concat(anchors, axis=0)
+    return tf.clip_by_value(anchors, 0, 1)
 
 def renormalize_bboxes_with_min_max(bboxes, min_max):
     """Renormalizing given bounding boxes to the new boundaries.

@@ -73,7 +73,7 @@ def get_model(hyper_params):
     ############################ Extra Feature Layers End ############################
     # L2 normalization for each location in the feature map
     #
-    pred_deltas, pred_labels = get_head_from_outputs(hyper_params, [conv4_3, conv7, conv8_2, conv9_2, conv10_2, conv11_2])
+    pred_deltas, pred_labels = get_head_from_outputs(hyper_params, [conv9_2, conv10_2, conv11_2])
     return Model(inputs=input, outputs=[pred_deltas, pred_labels])
 
 def init_model(model):
@@ -82,5 +82,4 @@ def init_model(model):
     Args:
         model (tf.keras.Model): _description_
     """
-    print('s')
     model(tf.random.uniform((1, 300, 300, 3)))

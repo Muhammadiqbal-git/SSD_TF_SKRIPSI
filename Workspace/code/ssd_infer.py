@@ -45,8 +45,8 @@ ssd_model = get_model(hyper_params)
 ssd_model_path = io_utils.get_model_path(backbone)
 ssd_model.load_weights(ssd_model_path)
 
-prior_boxes = bbox_utils.generate_prior_boxes(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
-ssd_decoder_model = get_decoder_model(ssd_model, prior_boxes, hyper_params)
+anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
+ssd_decoder_model = get_decoder_model(ssd_model, anchors, hyper_params)
 
 step_size = train_utils.get_step_size(total_items, batch_size)
 pred_bboxes, pred_scores, pred_labels = ssd_decoder_model.predict(test_data, steps=step_size, verbose=1)
