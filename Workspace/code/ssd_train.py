@@ -4,17 +4,17 @@ from keras.callbacks import ModelCheckpoint, TensorBoard, LearningRateScheduler
 from keras.optimizers import SGD, Adam
 import augmentator
 from ssd_loss import SSDLoss
-from utils import bbox_utils, data_utils, io_utils, train_utils
+from utils import bbox_utils, data_utils, io_utils, train_utils, tf_record_utils
 from models.ssd_vgg16_architecture import get_model, init_model
 
 args = io_utils.handle_args()
 if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
-batch_size = 32
+batch_size = 16
 epochs = 20
 load_weights = False
-with_voc_2012 = True
+with_voc_2012 = False
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
 #
@@ -22,7 +22,11 @@ io_utils.is_valid_backbone(backbone)
 hyper_params = train_utils.get_hyper_params(backbone)
 #
 par_cwd_dir = os.path.dirname(os.getcwd())
+custom_data_dir = os.path.join(par_cwd_dir, 'imgs')
 voc_data_dir = os.path.join(par_cwd_dir, "voc_dataset")
+
+
+tf_record_utils.write_tf_record(custom_data_dir)
 train_data, info = data_utils.get_dataset("voc/2007", "train+validation", voc_data_dir)
 val_data, _ = data_utils.get_dataset("voc/2007", "test", voc_data_dir)
 train_total_items = data_utils.get_total_item_size(info, "train+validation")
@@ -54,6 +58,7 @@ ssd_custom_losses = SSDLoss(hyper_params["neg_pos_ratio"], hyper_params["loc_los
 ssd_model.compile(optimizer=Adam(learning_rate=1e-3),
                   loss=[ssd_custom_losses.loc_loss_fn, ssd_custom_losses.conf_loss_fn])
 init_model(ssd_model)
+
 #
 ssd_model_path = io_utils.get_model_path(backbone)
 if load_weights:
@@ -68,8 +73,10 @@ checkpoint_callback = ModelCheckpoint(ssd_model_path, monitor="val_loss", save_b
 tensorboard_callback = TensorBoard(log_dir=ssd_log_path)
 learning_rate_callback = LearningRateScheduler(train_utils.scheduler, verbose=0)
 
-step_size_train = train_utils.get_step_size(train_total_items, batgch_size)
+step_size_train = train_utils.get_step_size(train_total_items, batch_size)
 step_size_val = train_utils.get_step_size(val_total_items, batch_size)
+aa
+
 ssd_model.fit(ssd_train_feed,
               steps_per_epoch=step_size_train,
               validation_data=ssd_val_feed,

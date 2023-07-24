@@ -25,24 +25,11 @@ def get_model(hyper_params):
     # vgg_model = VGG16(input_shape=(None, None, 3), include_top=False)
     # conv_4_3 = vgg_model.get_layer("block4_conv3").output
     # conv_5_3 = vgg_model.get_layer("block5_conv3").output
-    input_ = Input(shape=(None, None, 3), name='input')
-    # conv1 block
-    conv1_1 = Conv2D(64, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv1_1")(input_)
-    conv1_2 = Conv2D(64, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv1_2")(conv1_1)
-    pool1 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool1")(conv1_2)
-    # conv2 block
-    conv2_1 = Conv2D(128, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv2_1")(pool1)
-    conv2_2 = Conv2D(128, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv2_2")(conv2_1)
-    pooL2 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pooL2")(conv2_2)
-    # conv3 block
-    conv3_1 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv3_1")(pooL2)
-    conv3_2 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv3_2")(conv3_1)
-    conv3_3 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv3_3")(conv3_2)
-    pool3 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool3")(conv3_3)
-    # conv4 block
-    conv4_1 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_1")(pool3)
-    conv4_2 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_2")(conv4_1)
-    conv4_3 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_3")(conv4_2)
+    # input_ = Input(shape=(None, None, 3), name='input')
+    vgg = VGG16(input_shape=(None, None, 3), include_top=False)
+
+    conv4_3 = vgg.get_layer("block4_conv3").output
+
     pool4 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool4")(conv4_3)
     # conv5 block
     conv5_1 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv5_1")(pool4)
@@ -75,7 +62,7 @@ def get_model(hyper_params):
     #
 
     pred_deltas, pred_labels = get_head_from_outputs(hyper_params, [conv4_3, conv7, conv8_2, conv9_2, conv10_2, conv11_2])
-    return Model(inputs=input_, outputs=[pred_deltas, pred_labels])
+    return Model(inputs=vgg.input, outputs=[pred_deltas, pred_labels])
 
 def init_model(model):
     """Initiate model with dummy data for load weight with optimizer state and graph construction
@@ -84,3 +71,4 @@ def init_model(model):
         model (tf.keras.Model): _description_
     """
     model(tf.random.uniform((1, 300, 300, 3)))
+    # model.summary()

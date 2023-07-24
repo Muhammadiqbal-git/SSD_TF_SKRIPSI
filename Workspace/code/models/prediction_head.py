@@ -24,10 +24,7 @@ class PredictionHead(Layer):
 
         outputs = []
         for conv_layer in inputs:
-            print('tes')
-            print(conv_layer.shape)
             outputs.append(tf.reshape(conv_layer, (batch_size, -1, last_dimension)))
-
         return tf.concat(outputs, axis=1)
 
 def get_head_from_outputs(hyper_params, outputs):
