@@ -3,6 +3,8 @@ import tensorflow as tf
 import tensorflow_datasets as tfds
 from PIL import Image
 import numpy as np
+from matplotlib import pyplot as plt
+import cv2
 
 def preprocessing(image_data, final_height, final_width, augmentation_fn=None, evaluate=False):
     """Image resizing operation handled before batch operations.
@@ -32,6 +34,40 @@ def preprocessing(image_data, final_height, final_width, augmentation_fn=None, e
         img, gt_boxes = augmentation_fn(img, gt_boxes)
     return img, gt_boxes, gt_labels
 
+def preview_data(dataset):
+    n_data = 5
+    fig, ax = plt.subplots(ncols=n_data, figsize=(20,20))
+    for idx, data in enumerate(dataset.take(n_data)):
+        print('image of ', idx+1)
+        print(data['image'].shape)
+        print(data['labels'])
+        print(data['objects']['label'])
+        print(data['objects']['bbox'])
+        print('ss')
+        image = data['image']
+        bboxs = data['objects']['bbox'] # [ymin, xmax, ymax, xmax]
+        height = data['image'].shape[0]
+        width = data['image'].shape[1]
+        image_bgr = cv2.cvtColor(image.numpy(), cv2.COLOR_RGB2BGR)
+        for bbox in bboxs:
+            ymin = bbox[0]*height
+            xmin = bbox[1]*width
+            ymax = bbox[2]*height
+            xmax = bbox[3]*width
+
+            cv2.rectangle(
+                image_bgr,
+                (int(xmin), int(ymin)),
+                (int(xmax), int(ymax)),
+                (255, 0, 0),
+                2
+            )
+        image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+        ax[idx].imshow((image_rgb))
+        # ax.imshow((image.numpy()))
+    plt.show()
+
+
 def get_dataset(name, split, data_dir):
     """Get tensorflow dataset split and info.
     inputs:
@@ -45,6 +81,7 @@ def get_dataset(name, split, data_dir):
     """
     assert split in ["train", "train+validation", "validation", "test"]
     dataset, info = tfds.load(name, split=split, data_dir=data_dir, with_info=True)
+    print('ds info')
     print(dataset)
     print(info.features['labels'].names)
     return dataset, info

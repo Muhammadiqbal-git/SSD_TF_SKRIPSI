@@ -28,6 +28,8 @@ voc_data_dir = os.path.join(par_cwd_dir, "voc_dataset")
 
 tf_record_utils.write_tf_record(custom_data_dir)
 train_data, info = data_utils.get_dataset("voc/2007", "train+validation", voc_data_dir)
+# data_utils.preview_data(train_data)
+aa
 val_data, _ = data_utils.get_dataset("voc/2007", "test", voc_data_dir)
 train_total_items = data_utils.get_total_item_size(info, "train+validation")
 val_total_items = data_utils.get_total_item_size(info, "test")
@@ -75,8 +77,6 @@ learning_rate_callback = LearningRateScheduler(train_utils.scheduler, verbose=0)
 
 step_size_train = train_utils.get_step_size(train_total_items, batch_size)
 step_size_val = train_utils.get_step_size(val_total_items, batch_size)
-aa
-
 ssd_model.fit(ssd_train_feed,
               steps_per_epoch=step_size_train,
               validation_data=ssd_val_feed,

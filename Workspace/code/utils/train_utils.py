@@ -74,6 +74,8 @@ def generator(dataset, prior_boxes, hyper_params):
     while True:
         for image_data in dataset:
             img, gt_boxes, gt_labels = image_data
+            print('gen')
+            print(gt_boxes[0])
             # print('tes')
             # print(prior_boxes)
             actual_deltas, actual_labels = calculate_actual_outputs(prior_boxes, gt_boxes, gt_labels, hyper_params)
