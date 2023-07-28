@@ -11,10 +11,11 @@ args = io_utils.handle_args()
 if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
-batch_size = 16
-epochs = 20
-load_weights = False
+batch_size = 4
+epochs = 20000
+load_weights = True
 with_voc_2012 = False
+use_custom_dataset = True
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
 #
@@ -25,18 +26,26 @@ par_cwd_dir = os.path.dirname(os.getcwd())
 custom_data_dir = os.path.join(par_cwd_dir, 'imgs')
 voc_data_dir = os.path.join(par_cwd_dir, "voc_dataset")
 
+if use_custom_dataset:
+    tf_record_utils.write_tf_record(custom_data_dir, overwrite=False)
+    train_data, info = data_utils.get_custom_dataset("train", custom_data_dir, epochs)
+    val_data, _ = data_utils.get_custom_dataset("validation", custom_data_dir, epochs)
+    # test_data, _ = data_utils.get_custom_dataset("test", custom_data_dir)
 
-tf_record_utils.write_tf_record(custom_data_dir)
-train_data, info = data_utils.get_dataset("voc/2007", "train+validation", voc_data_dir)
+
+else:
+    train_data, info = data_utils.get_dataset("voc/2007", "train", voc_data_dir)
+    val_data, _ = data_utils.get_dataset("voc/2007", "validation", voc_data_dir)
+
+
 # data_utils.preview_data(train_data)
-aa
-val_data, _ = data_utils.get_dataset("voc/2007", "test", voc_data_dir)
-train_total_items = data_utils.get_total_item_size(info, "train+validation")
-val_total_items = data_utils.get_total_item_size(info, "test")
+train_total_items = data_utils.get_total_item_size(info, "train")
+val_total_items = data_utils.get_total_item_size(info, "validation")
+print(train_total_items, val_total_items)
 
-if with_voc_2012:
-    voc_2012_data, voc_2012_info = data_utils.get_dataset("voc/2012", "train+validation", voc_data_dir)
-    voc_2012_total_items = data_utils.get_total_item_size(voc_2012_info, "train+validation")
+if with_voc_2012 and not use_custom_dataset:
+    voc_2012_data, voc_2012_info = data_utils.get_dataset("voc/2012", "train", voc_data_dir)
+    voc_2012_total_items = data_utils.get_total_item_size(voc_2012_info, "train")
     train_total_items += voc_2012_total_items
     train_data = train_data.concatenate(voc_2012_data)
 
@@ -66,8 +75,11 @@ ssd_model_path = io_utils.get_model_path(backbone)
 if load_weights:
     ssd_model.load_weights(ssd_model_path)
 ssd_log_path = io_utils.get_log_path(backbone)
-# We calculate prior boxes for one time and use it for all operations because of the all images are the same sizes
+# We calculate anchors for one time and use it for all operations because of the all images are the same sizes
 anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
+print('anch')
+print(anchors.shape)
+print('-x-')
 ssd_train_feed = train_utils.generator(train_data, anchors, hyper_params)
 ssd_val_feed = train_utils.generator(val_data, anchors, hyper_params)
 

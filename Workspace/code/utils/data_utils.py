@@ -20,8 +20,6 @@ def preprocessing(image_data, final_height, final_width, augmentation_fn=None, e
     """
     img = image_data["image"]
     gt_boxes = image_data["objects"]["bbox"]
-    print('asd')
-    print(gt_boxes)
     gt_labels = tf.cast(image_data["objects"]["label"] + 1, tf.int32)
 
     img = tf.image.convert_image_dtype(img, tf.float32)
@@ -86,6 +84,27 @@ def get_dataset(name, split, data_dir):
     print(info.features['labels'].names)
     return dataset, info
 
+def get_custom_dataset(split, data_dir, epochs=1):
+    """Get tensorflow dataset split and info.
+    inputs:
+        name = name of the dataset, voc/2007, voc/2012, etc.
+        split = data split string, should be one of ["train", "validation", "test"]
+        data_dir = read/write path for tensorflow datasets
+
+    outputs:
+        dataset = tensorflow dataset split
+        info = tensorflow dataset info
+    """
+    assert split in ["train", "train+validation", "validation", "test"], 'split must be in format with one of these'
+    dataset_builder= tfds.builder_from_directory(builder_dir=data_dir)
+    dataset = dataset_builder.as_dataset(split=split)
+    dataset = dataset.repeat(epochs)
+    info = dataset_builder.info
+    print('ds info')
+    print(dataset)
+    print(info.features['labels'].names)
+    return dataset, info
+
 def get_total_item_size(info, split):
     """Get total item size for given split.
     inputs:
@@ -95,12 +114,9 @@ def get_total_item_size(info, split):
     outputs:
         total_item_size = number of total items
     """
-    assert split in ["train", "train+validation", "validation", "test"]
+    assert split in ["train", "train+validation", "validation", "test"], 'split must be in format with one of these'
     if split == "train+validation":
         return info.splits["train"].num_examples + info.splits["validation"].num_examples
-    print(info.splits["train"].num_examples)
-    print(info.splits["validation"].num_examples)
-
     return info.splits[split].num_examples
 
 def get_labels(info):

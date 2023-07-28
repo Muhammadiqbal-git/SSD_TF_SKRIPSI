@@ -26,20 +26,35 @@ class SSDDecoder(Layer):
     def call(self, inputs, *args, **kwargs):
         pred_deltas = inputs[0]
         pred_labels = inputs[1]
+        print('-c-c-')
+        print(pred_deltas.shape)
+        print(pred_labels.shape)
+
         batch_size = tf.shape(pred_deltas)[0]
 
         pred_deltas *= self.variances
         pred_bboxes = bbox_utils.prop2abs(self.anchors, pred_deltas)
+        print(pred_bboxes.shape)
 
         pred_labels_map = tf.expand_dims(tf.argmax(pred_labels, -1), -1)
         pred_labels = tf.where(tf.not_equal(pred_labels_map, 0), pred_labels, tf.zeros_like(pred_labels))
 
         pred_bboxes = tf.reshape(pred_bboxes, (batch_size, -1, 1, 4))
 
-        final_bboxes, final_scores, final_labels = bbox_utils.nms(pred_bboxes, pred_labels, max_ouput_size_per_class=self.max_total_size, score_threshold=self.score_threshold)
-        
+        final_bboxes, final_scores, final_labels, _ = bbox_utils.nms(
+            pred_bboxes, pred_labels, 
+            max_output_size_per_class=self.max_total_size, 
+            max_total_size=self.max_total_size,
+            score_threshold=self.score_threshold)
+
         return final_bboxes, final_scores, final_labels
-    
+
+
 def get_decoder_model(base_model, anchors, hyper_params):
     bboxes, scores, labels = SSDDecoder(anchors, hyper_params["variances"])(base_model.output)
+    print('-d--d-')
+    print(bboxes)
+    print(scores)
+    print(labels)
+
     return Model(inputs=base_model.input, outputs=[bboxes, scores, labels])
