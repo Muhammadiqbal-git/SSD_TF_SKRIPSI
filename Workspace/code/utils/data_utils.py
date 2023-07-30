@@ -18,7 +18,7 @@ def preprocessing(image_data, final_height, final_width, augmentation_fn=None, e
         gt_boxes : (gt_box_size, [y1, x1, y2, x2])
         gt_labels : (gt_box_size)
     """
-    img = image_data["image"]
+    img = tf.image.convert_image_dtype(image_data['image'], tf.float32)
     gt_boxes = image_data["objects"]["bbox"]
     gt_labels = tf.cast(image_data["objects"]["label"] + 1, tf.int32)
 
@@ -38,11 +38,13 @@ def preview_data(dataset):
     for idx, data in enumerate(dataset.take(n_data)):
         print('image of ', idx+1)
         print(data['image'].shape)
+        print(data['image'][300, 300, :])
+        image = tf.image.convert_image_dtype(data['image'], tf.float32)
+        print(image[300, 300, :])
         print(data['labels'])
         print(data['objects']['label'])
         print(data['objects']['bbox'])
         print('ss')
-        image = data['image']
         bboxs = data['objects']['bbox'] # [ymin, xmax, ymax, xmax]
         height = data['image'].shape[0]
         width = data['image'].shape[1]

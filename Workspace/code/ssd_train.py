@@ -11,8 +11,8 @@ args = io_utils.handle_args()
 if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
-batch_size = 4
-epochs = 20000
+batch_size = 8
+epochs = 400
 load_weights = True
 with_voc_2012 = False
 use_custom_dataset = True
@@ -30,15 +30,14 @@ if use_custom_dataset:
     tf_record_utils.write_tf_record(custom_data_dir, overwrite=False)
     train_data, info = data_utils.get_custom_dataset("train", custom_data_dir, epochs)
     val_data, _ = data_utils.get_custom_dataset("validation", custom_data_dir, epochs)
-    # test_data, _ = data_utils.get_custom_dataset("test", custom_data_dir)
-
-
+    test_data, _ = data_utils.get_custom_dataset("test", custom_data_dir)
 else:
     train_data, info = data_utils.get_dataset("voc/2007", "train", voc_data_dir)
     val_data, _ = data_utils.get_dataset("voc/2007", "validation", voc_data_dir)
 
-
 # data_utils.preview_data(train_data)
+# aa
+
 train_total_items = data_utils.get_total_item_size(info, "train")
 val_total_items = data_utils.get_total_item_size(info, "validation")
 print(train_total_items, val_total_items)

@@ -84,7 +84,7 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
             encoded_img = f.read()
             decoded_img = tf.io.decode_jpeg(encoded_img, channels=3)
             decoded_img = tf.image.convert_image_dtype(decoded_img, tf.float32)
-            decoded_img = tf.image.resize(decoded_img, [height, width])
+            decoded_img = tf.image.resize_with_pad(decoded_img, height, width, method=tf.image.ResizeMethod.LANCZOS3)
             decoded_img = tf.image.convert_image_dtype(decoded_img, tf.uint8)
             encoded_img = tf.io.encode_jpeg(decoded_img)
         with open(json_path, "r+") as fs:
@@ -100,16 +100,24 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
                     categories[object_["label"]] = max_id
                 labels[object_["label"]] = categories[object_["label"]]
                 bbx = object_["points"]
-                im_h = data["imageHeight"]
                 im_w = data["imageWidth"]
+                im_h = data["imageHeight"] 
+                pad_size_x = 0
+                pad_size_y = 0
+                if im_w > im_h:
+                    pad_size_y = (im_w - im_h) / 2
+                    im_h += im_w - im_h
+                else:
+                    pad_size_x = (im_h - im_w) / 2
+                    im_w += im_h - im_w
                 # [ymin, xmin, ymax, xmax] format
                 label.append(categories[object_["label"]])
                 bbox.append(
                     [
-                        bbx[0][1] / im_h,
-                        bbx[0][0] / im_w,
-                        bbx[1][1] / im_h,
-                        bbx[1][0] / im_w,
+                        (bbx[0][1] + pad_size_y) / im_h,
+                        (bbx[0][0] + pad_size_x) / im_w,
+                        (bbx[1][1] + pad_size_y) / im_h,
+                        (bbx[1][0]+ pad_size_x) / im_w,
                     ]
                 )
         data_list.append(
@@ -203,7 +211,7 @@ def write_tf_record(dir, overwrite=True):
         convert_to_jpeg(img_path=img_path)
 
     data_train, data_val, data_test, categories = get_custom_data(
-        img_dir=custom_img_dir, resize=(500, 500), split_number=(0.5, 0.4)
+        img_dir=custom_img_dir, resize=(500, 500), split_number=(0.7, 0.2)
     )
     features, split_info = create_tfds_feature(
         name_classes=list(categories.keys()),

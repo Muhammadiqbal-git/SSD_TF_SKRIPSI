@@ -6,10 +6,10 @@ SSD = {
     "vgg16": {
         "img_size": 300,
         "feature_map_shapes": [38, 19, 10, 5, 3, 1],
-        "aspect_ratios": [[1., 2., 1./2.],
-                         [1., 2., 1./2., 3., 1./3.],
-                         [1., 2., 1./2., 3., 1./3.],
-                         [1., 2., 1./2., 3., 1./3.],
+        "aspect_ratios": [[1., 2./3., 1./2.],
+                         [1., 2., 1./2., 2./3., 1./3.],
+                         [1., 2., 1./2., 2./3., 1./3.],
+                         [1., 2., 1./2., 2./3., 1./3.],
                          [1., 2., 1./2.],
                          [1., 2., 1./2.]],
     },
@@ -24,7 +24,7 @@ def get_hyper_params(backbone="vgg16", **kwargs):
         hyper_params : dictionary
     """
     hyper_params = SSD[backbone]
-    hyper_params["iou_threshold"] = 0.5
+    hyper_params["iou_threshold"] = 0.50
     hyper_params["neg_pos_ratio"] = 3
     hyper_params["loc_loss_alpha"] = 1
     hyper_params["variances"] = [0.1, 0.1, 0.2, 0.2]
@@ -42,12 +42,12 @@ def scheduler(epoch):
     outputs:
         learning_rate : float learning rate value
     """
-    if epoch < 100:
-        return 1e-3
-    elif epoch < 125:
+    if epoch < 50:
         return 1e-4
-    else:
+    elif epoch < 125:
         return 1e-5
+    else:
+        return 1e-6
 
 def get_step_size(total_items, batch_size):
     """Get step size for given total item size and batch size.

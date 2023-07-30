@@ -27,7 +27,7 @@ def get_model(hyper_params):
     # conv4_3 = vgg.get_layer("block4_conv3").output
     # pool4 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool4")(conv4_3)
     input_ = Input(shape=(None, None, 3), name="input")
-    # conv1 block
+    # conv1 block - Halved
     conv1_1 = Conv2D(64, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv1_1")(input_)
     conv1_2 = Conv2D(64, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv1_2")(conv1_1)
     pool1 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool1")(conv1_2)
@@ -35,17 +35,17 @@ def get_model(hyper_params):
     conv2_1 = Conv2D(128, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv2_1")(pool1)
     conv2_2 = Conv2D(128, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv2_2")(conv2_1)
     pool2 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool2")(conv2_2)
-    # conv3 block - Halved start here
+    # conv3 block - Halved
     conv3_1 = Conv2D(128, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv3_1")(pool2)
-    conv3_2 = Conv2D(128, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv3_2")(conv3_1)
-    conv3_3 = Conv2D(128, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv3_3")(conv3_2)
+    conv3_2 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv3_2")(conv3_1)
+    conv3_3 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv3_3")(conv3_2)
     pool3 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool3")(conv3_3)
     # conv4 block 
-    conv4_1 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_1")(pool3)
-    conv4_2 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_2")(conv4_1)
-    conv4_3 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_3")(conv4_2)
+    conv4_1 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_1")(pool3)
+    conv4_2 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_2")(conv4_1)
+    conv4_3 = Conv2D(512, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv4_3")(conv4_2)
     pool4 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool4")(conv4_3)
-    # conv5 block
+    # conv5 block - Halved start here
     conv5_1 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv5_1")(pool4)
     conv5_2 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv5_2")(conv5_1)
     conv5_3 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv5_3")(conv5_2)
