@@ -156,12 +156,12 @@ def custom_data_generator(img_paths, final_height, final_width):
         dummy_gt_boxes = (None, None)
         dummy_gt_labels = (None, )
     """
+    #before
     for img_path in img_paths:
         image = Image.open(img_path)
-        resized_image = image.resize((final_width, final_height), Image.LANCZOS)
-        img = np.array(resized_image)
-        img = tf.image.convert_image_dtype(img, tf.float32)
-        yield img, tf.constant([[]], dtype=tf.float32), tf.constant([], dtype=tf.int32)
+        resized_image = tf.image.convert_image_dtype(image, tf.float32)
+        resized_image = tf.image.resize_with_pad(resized_image, final_height, final_width, method=tf.image.ResizeMethod.LANCZOS3)
+        yield resized_image, tf.constant([[]], dtype=tf.float32), tf.constant([], dtype=tf.int32)
 
 def get_data_types():
     """Generating data types for tensorflow datasets.

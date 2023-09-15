@@ -12,7 +12,7 @@ if args.handle_gpu:
 
 batch_size = 4
 evaluate = False
-use_custom_images = False
+use_custom_images = True
 use_custom_dataset = True
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)

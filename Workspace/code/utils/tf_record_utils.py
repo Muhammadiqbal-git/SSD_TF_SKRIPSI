@@ -49,6 +49,20 @@ def convert_to_jpeg(img_path):
     os.remove(img_path)
 
 
+def resize_img(img_path, resize: tuple):
+    height = resize[0]
+    width = resize[1]
+    with tf.io.gfile.GFile(img_path, "rb") as f:
+        encoded_img = f.read()
+        decoded_img = tf.io.decode_jpeg(encoded_img, channels=3)
+        decoded_img = tf.image.convert_image_dtype(decoded_img, tf.float32)
+        decoded_img = tf.image.resize_with_pad(decoded_img, height, width, method=tf.image.ResizeMethod.LANCZOS3)
+        decoded_img = tf.image.convert_image_dtype(decoded_img, tf.uint8)
+        encoded_img = tf.io.encode_jpeg(decoded_img)
+    return encoded_img
+
+
+
 def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
     """Process the data img and json from directory provided
 
@@ -68,9 +82,6 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
         split_number[0] + split_number[1] <= 1.0
     ), "Split sum value must be below than 1.0"
     print(split_number[0] + split_number[1])
-
-    height = resize[0]
-    width = resize[1]
     data_list = []
     categories = {}
     data_instance = namedtuple("DataInstance", ["img_data", "labels", "label", "bbox"])
@@ -80,13 +91,7 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
             continue
         img_path = os.path.join(img_dir, data)
         json_path = os.path.join(img_dir, data.replace(".jpeg", ".json"))
-        with tf.io.gfile.GFile(img_path, "rb") as f:
-            encoded_img = f.read()
-            decoded_img = tf.io.decode_jpeg(encoded_img, channels=3)
-            decoded_img = tf.image.convert_image_dtype(decoded_img, tf.float32)
-            decoded_img = tf.image.resize_with_pad(decoded_img, height, width, method=tf.image.ResizeMethod.LANCZOS3)
-            decoded_img = tf.image.convert_image_dtype(decoded_img, tf.uint8)
-            encoded_img = tf.io.encode_jpeg(decoded_img)
+        encoded_img = resize_img(img_path=img_path, resize=resize)
         with open(json_path, "r+") as fs:
             data = json.load(fs)
             labels = {}
