@@ -8,7 +8,7 @@ import cv2
 
 def preprocessing(image_data, final_height, final_width, augmentation_fn=None, evaluate=False):
     """Image resizing operation handled before batch operations.
-    inputs:
+    Args:
         image_data : tensorflow dataset image_data
         final_height : final image height after resizing
         final_width : final image width after resizing
@@ -18,7 +18,7 @@ def preprocessing(image_data, final_height, final_width, augmentation_fn=None, e
         gt_boxes : (gt_box_size, [y1, x1, y2, x2])
         gt_labels : (gt_box_size)
     """
-    img = tf.image.convert_image_dtype(image_data['image'], tf.float32)
+    img = tf.image.convert_image_dtype(image_data["image"], tf.float32)
     gt_boxes = image_data["objects"]["bbox"]
     gt_labels = tf.cast(image_data["objects"]["label"] + 1, tf.int32)
 
@@ -36,18 +36,18 @@ def preview_data(dataset):
     n_data = 5
     fig, ax = plt.subplots(ncols=n_data, figsize=(20,20))
     for idx, data in enumerate(dataset.take(n_data)):
-        print('image of ', idx+1)
-        print(data['image'].shape)
-        print(data['image'][300, 300, :])
-        image = tf.image.convert_image_dtype(data['image'], tf.float32)
+        print("image of ", idx+1)
+        print(data["image"].shape)
+        print(data["image"][300, 300, :])
+        image = tf.image.convert_image_dtype(data["image"], tf.float32)
         print(image[300, 300, :])
-        print(data['labels'])
-        print(data['objects']['label'])
-        print(data['objects']['bbox'])
-        print('ss')
-        bboxs = data['objects']['bbox'] # [ymin, xmax, ymax, xmax]
-        height = data['image'].shape[0]
-        width = data['image'].shape[1]
+        print(data["labels"])
+        print(data["objects"]["label"])
+        print(data["objects"]["bbox"])
+        print("ss")
+        bboxs = data["objects"]["bbox"] # [ymin, xmax, ymax, xmax]
+        height = data["image"].shape[0]
+        width = data["image"].shape[1]
         image_bgr = cv2.cvtColor(image.numpy(), cv2.COLOR_RGB2BGR)
         for bbox in bboxs:
             ymin = bbox[0]*height
@@ -67,6 +67,26 @@ def preview_data(dataset):
         # ax.imshow((image.numpy()))
     plt.show()
 
+def get_data_dir(subset):
+    """get dataset directory
+
+    Args:
+        subset (String): get dataset directory in subfolder "code", should be one of ["imgs", "custom_test_imgs", "voc"]
+                        if not provided, it will get the "subset" folder within the same level.
+
+    Returns:
+        String: a directory of dataset.
+    """
+    par_dir = os.path.dirname(os.getcwd())
+    if subset=="dataset":
+        return os.path.join(par_dir, "imgs")
+    elif subset=="custom":
+        return os.path.join(par_dir, "custom_test_imgs")
+    elif subset=="voc":
+        return os.path.join(par_dir, "voc_dataset")
+    else:
+        return os.path.join(par_dir, subset)
+
 
 def get_dataset(name, split, data_dir):
     """Get tensorflow dataset split and info.
@@ -81,9 +101,9 @@ def get_dataset(name, split, data_dir):
     """
     assert split in ["train", "train+validation", "validation", "test"]
     dataset, info = tfds.load(name, split=split, data_dir=data_dir, with_info=True)
-    print('ds info')
+    print("ds info")
     print(dataset)
-    print(info.features['labels'].names)
+    print(info.features["labels"].names)
     return dataset, info
 
 def get_custom_dataset(split, data_dir, epochs=1):
@@ -97,14 +117,14 @@ def get_custom_dataset(split, data_dir, epochs=1):
         dataset = tensorflow dataset split
         info = tensorflow dataset info
     """
-    assert split in ["train", "train+validation", "validation", "test"], 'split must be in format with one of these'
+    assert split in ["train", "train+validation", "validation", "test"], "split must be in format with one of these"
     dataset_builder= tfds.builder_from_directory(builder_dir=data_dir)
     dataset = dataset_builder.as_dataset(split=split)
     dataset = dataset.repeat(epochs)
     info = dataset_builder.info
-    print('ds info')
+    print("ds info")
     print(dataset)
-    print(info.features['labels'].names)
+    print(info.features["labels"].names)
     return dataset, info
 
 def get_total_item_size(info, split):
@@ -116,7 +136,7 @@ def get_total_item_size(info, split):
     outputs:
         total_item_size = number of total items
     """
-    assert split in ["train", "train+validation", "validation", "test"], 'split must be in format with one of these'
+    assert split in ["train", "train+validation", "validation", "test"], "split must be in format with one of these"
     if split == "train+validation":
         return info.splits["train"].num_examples + info.splits["validation"].num_examples
     return info.splits[split].num_examples
@@ -145,6 +165,25 @@ def get_custom_imgs(custom_image_path):
         break
     return img_paths
 
+
+def single_custom_data_gen(img_dir, final_height, final_width):
+    """Yielding custom entities as dataset.
+    inputs:
+        img_paths = custom image paths
+        final_height = final image height after resizing
+        final_width = final image width after resizing
+    outputs:
+        img = (final_height, final_width, depth)
+        dummy_gt_boxes = (None, None)
+        dummy_gt_labels = (None, )
+    """
+    img_path = os.path.join(img_dir, os.listdir(img_dir)[0])
+    image = Image.open(img_path)
+    resized_image = tf.image.convert_image_dtype(image, tf.float32)
+    resized_image = tf.image.resize_with_pad(resized_image, final_height, final_width, method=tf.image.ResizeMethod.LANCZOS3)
+    return resized_image, tf.constant([[]], dtype=tf.float32), tf.constant([], dtype=tf.int32)
+
+
 def custom_data_generator(img_paths, final_height, final_width):
     """Yielding custom entities as dataset.
     inputs:
@@ -156,7 +195,6 @@ def custom_data_generator(img_paths, final_height, final_width):
         dummy_gt_boxes = (None, None)
         dummy_gt_labels = (None, )
     """
-    #before
     for img_path in img_paths:
         image = Image.open(img_path)
         resized_image = tf.image.convert_image_dtype(image, tf.float32)

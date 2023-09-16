@@ -22,9 +22,8 @@ io_utils.is_valid_backbone(backbone)
 
 hyper_params = train_utils.get_hyper_params(backbone)
 #
-par_cwd_dir = os.path.dirname(os.getcwd())
-custom_data_dir = os.path.join(par_cwd_dir, 'imgs')
-voc_data_dir = os.path.join(par_cwd_dir, "voc_dataset")
+custom_data_dir = data_utils.get_data_dir("dataset")
+voc_data_dir = data_utils.get_data_dir("voc")
 
 if use_custom_dataset:
     tf_record_utils.write_tf_record(custom_data_dir, overwrite=False)
@@ -76,9 +75,9 @@ if load_weights:
 ssd_log_path = io_utils.get_log_path(backbone)
 # We calculate anchors for one time and use it for all operations because of the all images are the same sizes
 anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
-print('anch')
+print("anch")
 print(anchors.shape)
-print('-x-')
+print("-x-")
 ssd_train_feed = train_utils.generator(train_data, anchors, hyper_params)
 ssd_val_feed = train_utils.generator(val_data, anchors, hyper_params)
 

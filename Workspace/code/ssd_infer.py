@@ -19,11 +19,10 @@ io_utils.is_valid_backbone(backbone)
 
 hyper_params = train_utils.get_hyper_params(backbone)
 
-par_cwd_dir = os.path.dirname(os.getcwd())
-custom_data_dir = os.path.join(par_cwd_dir, 'imgs')
-custom_img_dir = os.path.join(par_cwd_dir, 'custom_test_imgs')
+custom_data_dir = data_utils.get_data_dir("dataset")
+custom_img_dir = data_utils.get_data_dir("custom_test_imgs")
+voc_data_dir = data_utils.get_data_dir("voc")
 
-voc_data_dir = os.path.join(par_cwd_dir, "voc_dataset")
 if use_custom_dataset:
     test_data, info = data_utils.get_custom_dataset("test", custom_data_dir)
 else:
@@ -31,7 +30,6 @@ else:
 total_items = data_utils.get_total_item_size(info, "test")
 labels = data_utils.get_labels(info)
 labels = ["bg"] + labels
-print(labels)
 hyper_params["total_labels"] = len(labels)
 img_size = hyper_params["img_size"]
 
@@ -45,13 +43,12 @@ if use_custom_images:
     test_data = tf.data.Dataset.from_generator(lambda: data_utils.custom_data_generator(
                                                img_paths, img_size, img_size), data_types, data_shapes)
 elif use_custom_dataset:
-    print('aa')
+    print("aa")
     test_data = test_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size))
 else:
     test_data = test_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size, evaluate=evaluate))
 
 test_data = test_data.padded_batch(batch_size, padded_shapes=data_shapes, padding_values=padding_values)
-
 ssd_model = get_model(hyper_params)
 ssd_model_path = io_utils.get_model_path(backbone)
 ssd_model.load_weights(ssd_model_path)
@@ -62,15 +59,16 @@ ssd_decoder_model = get_decoder_model(ssd_model, anchors, hyper_params)
 
 step_size = train_utils.get_step_size(total_items, batch_size)
 pred_bboxes, pred_scores, pred_labels= ssd_decoder_model.predict(test_data, steps=step_size, verbose=1)
-print('----output----')
-print(np.asarray(pred_bboxes))
-print(np.asarray(pred_bboxes).shape)
+print("----output----")
+print(pred_bboxes)
+print(pred_bboxes.shape)
 
-print(np.asarray(pred_scores))
-print(np.asarray(pred_scores).shape)
+print(pred_scores)
+print(pred_scores.shape)
 
-print(np.asarray(pred_labels))
-print(np.asarray(pred_labels).shape)
+print(pred_labels)
+print(pred_labels.shape)
+print(len(labels))
 
 print(evaluate)
 if evaluate:
