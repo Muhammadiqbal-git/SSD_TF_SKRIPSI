@@ -45,7 +45,7 @@ print(len(labels))
 time_now = time.strftime("%Y-%m-%d")
 model_dir = data_utils.get_data_dir('trained_model')
 
-saved_name = os.path.join(model_dir, "{} ID-{} {}".format(args.backbone, random.randint(11, 99), time_now))
+saved_name = os.path.join(model_dir, "{} Id-{} {}".format(args.backbone, random.randint(11, 99), time_now))
 print(saved_name)
 
 # draw_utils.infer_draw_predictions(data, pred_bboxes, pred_labels, pred_scores, labels, 1)
