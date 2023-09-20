@@ -9,7 +9,6 @@ from collections import namedtuple
 import tensorflow_datasets as tfds
 import random
 
-# print(decoded_img.shape)
 # fig, ax = plt.subplots(ncols=1, figsize=(20,20))
 # image_bgr = cv2.cvtColor(decoded_img.numpy(), cv2.COLOR_RGB2BGR)
 # cv2.rectangle(

@@ -27,7 +27,6 @@ ssd_model.load_weights(weight_path)
 data_types = data_utils.get_data_types()
 data_shapes = data_utils.get_data_shapes()
 test_data = data_utils.single_custom_data_gen(custom_img_dir, 300, 300)
-print(len(test_data))
 
 anchor = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
 ssd_decoder_model = get_decoder_model(ssd_model, anchor, hyper_params)
@@ -39,18 +38,13 @@ data = tf.squeeze(data)
 pred_bboxes = tf.squeeze(pred_bboxes)
 pred_scores = tf.squeeze(pred_scores)
 pred_labels = tf.squeeze(pred_labels)
-print(data.shape)
-print(pred_bboxes.shape)
-print(pred_scores.shape)
-print(pred_labels.shape)
-print(len(labels))
 
 time_now = time.strftime("%Y-%m-%d")
 model_dir = data_utils.get_data_dir('trained_model')
 
 saved_loc = os.path.join(model_dir, "{}_Id-{}_{}.h5".format(args.backbone, random.randint(11, 99), time_now))
 
-# draw_utils.infer_draw_predictions(data, pred_bboxes, pred_labels, pred_scores, labels, 1)
+# draw_utils.infer_draw_predictions(data, pred_bboxes, pred_labels, pred_scores, labels)
 ssd_decoder_model.save(saved_loc, save_format="h5")
 if os.path.exists(saved_loc):
     print("SUCCESS! model successfully saved in {}".format(saved_loc))

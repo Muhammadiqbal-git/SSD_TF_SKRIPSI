@@ -50,8 +50,5 @@ def get_head_from_outputs(hyper_params, outputs):
     pred_labels = PredictionHead(total_labels, name="labels_head")(labels_head)
     pred_labels = Activation("softmax", name="conf")(pred_labels)
     pred_deltas = PredictionHead(4, name="loc")(bboxes_head)
-    print('----')
-    print(pred_deltas, pred_labels)
-    print('----')
 
     return pred_deltas, pred_labels

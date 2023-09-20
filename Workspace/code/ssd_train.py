@@ -39,7 +39,6 @@ else:
 
 train_total_items = data_utils.get_total_item_size(info, "train")
 val_total_items = data_utils.get_total_item_size(info, "validation")
-print(train_total_items, val_total_items)
 
 if with_voc_2012 and not use_custom_dataset:
     voc_2012_data, voc_2012_info = data_utils.get_dataset("voc/2012", "train", voc_data_dir)
@@ -49,7 +48,6 @@ if with_voc_2012 and not use_custom_dataset:
 
 labels = data_utils.get_labels(info)
 labels = ["bg"] + labels
-print(labels)
 
 hyper_params["total_labels"] = len(labels)
 img_size = hyper_params["img_size"]
@@ -75,9 +73,6 @@ if load_weights:
 ssd_log_path = io_utils.get_log_path(backbone)
 # We calculate anchors for one time and use it for all operations because of the all images are the same sizes
 anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
-print("anch")
-print(anchors.shape)
-print("-x-")
 ssd_train_feed = train_utils.generator(train_data, anchors, hyper_params)
 ssd_val_feed = train_utils.generator(val_data, anchors, hyper_params)
 

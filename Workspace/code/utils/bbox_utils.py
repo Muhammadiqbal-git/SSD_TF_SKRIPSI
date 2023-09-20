@@ -41,22 +41,12 @@ def compute_iou(bboxes, gt_boxes, transpose_perm=[0, 2, 1]):
     """
     gt_rank = tf.rank(gt_boxes)
     gt_expand_axis = gt_rank - 2
-    print("====s====")
-    print(bboxes.shape)
-    print(gt_boxes.shape)
-    print("====end====")
-
 
     bbox_ymin, bbox_xmin, bbox_ymax, bbox_xmax = tf.split(bboxes, 4, axis=-1)
     gt_ymin, gt_xmin, gt_ymax, gt_xmax = tf.split(gt_boxes, 4, axis=-1)
 
     gt_area = tf.squeeze((gt_ymax - gt_ymin) * (gt_xmax - gt_xmin), axis=-1)
     bbox_area = tf.squeeze((bbox_ymax - bbox_ymin) * (bbox_xmax - bbox_xmin), axis=-1)
-    # print('--=--')
-    # print(gt_area)
-
-    # print(gt_area.shape)
-    # print(bbox_area.shape)
 
     x_top = tf.maximum(bbox_xmin, tf.transpose(gt_xmin, transpose_perm))
     y_top = tf.maximum(bbox_ymin, tf.transpose(gt_ymin, transpose_perm))
@@ -65,18 +55,11 @@ def compute_iou(bboxes, gt_boxes, transpose_perm=[0, 2, 1]):
 
     i_area = tf.maximum(x_bot - x_top, 0) * tf.maximum(y_bot - y_top, 0)
     bbox_area = tf.expand_dims(bbox_area, -1)
-    # bbox_area = tf.tile(bbox_area, [i_area.shape[0], 1, i_area.shape[2]])
     gt_area = tf.expand_dims(gt_area, gt_expand_axis)
-    # gt_area = tf.tile(gt_area, (1, i_area.shape[1], 1))
-    # print('tes')
-    # print(bbox_area.shape)
-    # print(gt_area.shape)
-    # print(i_area.shape)
     u_area = (
         bbox_area + gt_area - i_area
     )
-    # print(u_area.shape)
-    # print('tes=d')
+
 
 
     return i_area / u_area
@@ -93,10 +76,6 @@ def prop2abs(anchors, deltas):
         _type_: _description_
     """
     anchors = tf.convert_to_tensor(anchors)
-    print(type(anchors))
-    print(type(deltas))
-    print(len(anchors))
-    print(deltas.shape)
     all_pbox_width = anchors[..., 3] - anchors[..., 1]
     all_pbox_height = anchors[..., 2] - anchors[..., 0]
     all_pbox_ctr_x = anchors[..., 1] + 0.5 * all_pbox_width

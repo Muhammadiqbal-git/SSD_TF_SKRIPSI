@@ -81,14 +81,10 @@ def draw_predictions(dataset, pred_bboxes, pred_labels, pred_scores, labels, bat
         batch_bboxes, batch_labels, batch_scores = pred_bboxes[start:end], pred_labels[start:end], pred_scores[start:end]
         for i, img in enumerate(imgs):
             denormalized_bboxes = bbox_utils.denormalize_bboxes(batch_bboxes[i], img_size, img_size)
-            print('shape')
-            print(denormalized_bboxes.shape)
             draw_bboxes_with_labels(img, denormalized_bboxes, batch_labels[i], batch_scores[i], labels)
 
-def infer_draw_predictions(imgs, pred_bboxes, pred_labels, pred_scores, labels, batch_size):
+def infer_draw_predictions(imgs, pred_bboxes, pred_labels, pred_scores, labels):
     img_size = imgs.shape[1]
     # for i, img in enumerate(imgs):
     denormalized_bboxes = bbox_utils.denormalize_bboxes(pred_bboxes, img_size, img_size)
-    print('shape')
-    print(denormalized_bboxes.shape)
     draw_bboxes_with_labels(imgs, denormalized_bboxes, pred_labels, pred_scores, labels)

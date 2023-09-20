@@ -43,7 +43,6 @@ if use_custom_images:
     test_data = tf.data.Dataset.from_generator(lambda: data_utils.custom_data_generator(
                                                img_paths, img_size, img_size), data_types, data_shapes)
 elif use_custom_dataset:
-    print("aa")
     test_data = test_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size))
 else:
     test_data = test_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size, evaluate=evaluate))
@@ -54,23 +53,10 @@ ssd_model_path = io_utils.get_model_path(backbone)
 ssd_model.load_weights(ssd_model_path)
 
 anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
-print(anchors.shape)
 ssd_decoder_model = get_decoder_model(ssd_model, anchors, hyper_params)
 
 step_size = train_utils.get_step_size(total_items, batch_size)
 pred_bboxes, pred_scores, pred_labels= ssd_decoder_model.predict(test_data, steps=step_size, verbose=1)
-print("----output----")
-print(pred_bboxes)
-print(pred_bboxes.shape)
-
-print(pred_scores)
-print(pred_scores.shape)
-
-print(pred_labels)
-print(pred_labels.shape)
-print(len(labels))
-
-print(evaluate)
 if evaluate:
     eval_utils.evaluate_predictions(test_data, pred_bboxes, pred_labels, pred_scores, labels, batch_size)
 else:

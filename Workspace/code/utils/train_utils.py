@@ -74,12 +74,7 @@ def generator(dataset, anchors, hyper_params):
     while True:
         for image_data in dataset:
             img, gt_boxes, gt_labels = image_data
-            # print('gen')
-            # print(gt_boxes[0])
-            # print('tes')
-            # print(anchors)
             actual_deltas, actual_labels = calculate_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params)
-            # print(actual_deltas)
             yield img, (actual_deltas, actual_labels)
 
 def calculate_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params):
@@ -112,15 +107,10 @@ def calculate_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params):
     pos_cond = tf.greater(merged_iou_map, iou_threshold)
     #
     gt_boxes_map = tf.gather(gt_boxes, max_indices_each_gt_box, batch_dims=1)
-    print('--')
-    print(tf.expand_dims(pos_cond, -1).shape)
-    print(gt_boxes_map.shape)
     expanded_gt_boxes = tf.where(tf.expand_dims(pos_cond, -1), gt_boxes_map, tf.zeros_like(gt_boxes_map))
     bbox_deltas = bbox_utils.abs2prop(anchors, expanded_gt_boxes) / variances
     #
     gt_labels_map = tf.gather(gt_labels, max_indices_each_gt_box, batch_dims=1)
-    print(gt_labels_map.shape)
-    print('--')
     expanded_gt_labels = tf.where(pos_cond, gt_labels_map, tf.zeros_like(gt_labels_map))
     bbox_labels = tf.one_hot(expanded_gt_labels, total_labels)
     #
