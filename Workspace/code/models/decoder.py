@@ -3,7 +3,7 @@ from keras.layers import Layer, Input, Conv2D, MaxPool2D
 from keras.models import Model
 from utils import bbox_utils
 
-
+@tf.keras.utils.register_keras_serializable()
 class SSDDecoder(Layer):
 
     def __init__(self, anchors, variances, max_total_size=200, score_threshold=0.5, **kwargs):
@@ -27,14 +27,16 @@ class SSDDecoder(Layer):
         pred_deltas = inputs[0]
         pred_labels = inputs[1]
         print('-c-c-')
+        # print(inputs.shape)
         print(pred_deltas.shape)
         print(pred_labels.shape)
+        print(type(self.anchors))
 
         batch_size = tf.shape(pred_deltas)[0]
 
         pred_deltas *= self.variances
         pred_bboxes = bbox_utils.prop2abs(self.anchors, pred_deltas)
-        print(pred_bboxes.shape)
+        # print(pred_bboxes.shape)
 
         pred_labels_map = tf.expand_dims(tf.argmax(pred_labels, -1), -1)
         pred_labels = tf.where(tf.not_equal(pred_labels_map, 0), pred_labels, tf.zeros_like(pred_labels))
@@ -51,10 +53,13 @@ class SSDDecoder(Layer):
 
 
 def get_decoder_model(base_model, anchors, hyper_params):
+    print('--s--s')
+    print(anchors.shape)
+
     bboxes, scores, labels = SSDDecoder(anchors, hyper_params["variances"])(base_model.output)
     print('-d--d-')
-    print(bboxes)
-    print(scores)
-    print(labels)
+    print(bboxes.shape)
+    print(scores.shape)
+    print(labels.shape)
 
     return Model(inputs=base_model.input, outputs=[bboxes, scores, labels])

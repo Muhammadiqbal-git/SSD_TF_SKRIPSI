@@ -92,6 +92,11 @@ def prop2abs(anchors, deltas):
     Returns:
         _type_: _description_
     """
+    anchors = tf.convert_to_tensor(anchors)
+    print(type(anchors))
+    print(type(deltas))
+    print(len(anchors))
+    print(deltas.shape)
     all_pbox_width = anchors[..., 3] - anchors[..., 1]
     all_pbox_height = anchors[..., 2] - anchors[..., 0]
     all_pbox_ctr_x = anchors[..., 1] + 0.5 * all_pbox_width

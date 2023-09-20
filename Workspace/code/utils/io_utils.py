@@ -26,7 +26,7 @@ def get_model_path(model_type, custom_path=None):
         model_path = os model path, for example: "../trained/ssd_vgg16_model_weights.h5"
     """
     rel_path = os.path.relpath(os.path.join(os.getcwd(), os.pardir))
-    main_path = os.path.join(rel_path, "trained_ssd")
+    main_path = os.path.join(rel_path, "trained_weight")
     if custom_path:
         assert isinstance(custom_path, str), "'custom_path' argument must have String data type"
         main_path = custom_path

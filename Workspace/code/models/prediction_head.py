@@ -1,7 +1,7 @@
 import tensorflow as tf
 from keras.layers import Layer, Input, Conv2D, MaxPool2D, Activation
 
-
+@tf.keras.utils.register_keras_serializable()
 class PredictionHead(Layer):
     """Concatenate all feature maps for detection
 
