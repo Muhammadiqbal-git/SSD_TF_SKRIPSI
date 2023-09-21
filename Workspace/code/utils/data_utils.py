@@ -166,7 +166,7 @@ def get_custom_imgs(custom_image_path):
     return img_paths
 
 
-def single_custom_data_gen(img_dir, final_height, final_width):
+def single_custom_data_gen(img_data, final_height, final_width):
     """Yielding single custom entities as dataset.
     inputs:
         img_paths = custom image paths
@@ -177,8 +177,7 @@ def single_custom_data_gen(img_dir, final_height, final_width):
         dummy_gt_boxes = (None, None)
         dummy_gt_labels = (None, )
     """
-    img_path = os.path.join(img_dir, os.listdir(img_dir)[0])
-    image = Image.open(img_path)
+    image = Image.open(img_data)
     resized_image = tf.image.convert_image_dtype(image, tf.float32)
     resized_image = tf.image.resize_with_pad(resized_image, final_height, final_width, method=tf.image.ResizeMethod.LANCZOS3)
     data = tf.expand_dims(resized_image, 0)
