@@ -54,7 +54,6 @@ def draw_bboxes_with_labels(img, bboxes, label_indices, probs, labels):
     """
     colors = tf.random.uniform((len(labels), 4), maxval=256, dtype=tf.int32)
     image = tf.keras.preprocessing.image.array_to_img(img)
-    width, height = image.size
     draw = ImageDraw.Draw(image)
     for index, bbox in enumerate(bboxes):
         y1, x1, y2, x2 = tf.split(bbox, 4)
@@ -65,12 +64,12 @@ def draw_bboxes_with_labels(img, bboxes, label_indices, probs, labels):
         label_index = int(label_indices[index])
         color = tuple(colors[label_index].numpy())
         label_text = "{0} {1:0.3f}".format(labels[label_index], probs[index])
-        draw.text((x1 + 4, y1 + 2), label_text, fill=color)
-        draw.rectangle((x1, y1, x2, y2), outline=color, width=3)
+        draw.text((x1 + 1, y1 - 11), label_text, fill=color)
+        draw.rectangle((x1, y1, x2, y2), outline=color, width=2)
     #
-    plt.figure()
-    plt.imshow(image)
-    plt.show()
+    # im = Image.open(image)
+    # print(tf.keras.utils.img_to_array(image))
+    image.show()
 
 def draw_predictions(dataset, pred_bboxes, pred_labels, pred_scores, labels, batch_size):
     for batch_id, image_data in enumerate(dataset):
@@ -87,4 +86,5 @@ def infer_draw_predictions(imgs, pred_bboxes, pred_labels, pred_scores, labels):
     img_size = imgs.shape[1]
     # for i, img in enumerate(imgs):
     denormalized_bboxes = bbox_utils.denormalize_bboxes(pred_bboxes, img_size, img_size)
+    print(int(pred_labels[0]))
     draw_bboxes_with_labels(imgs, denormalized_bboxes, pred_labels, pred_scores, labels)

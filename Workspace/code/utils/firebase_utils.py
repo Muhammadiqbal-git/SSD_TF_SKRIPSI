@@ -6,11 +6,9 @@ import os
 cred = credentials.Certificate(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")) # add your Credentials keys path to sys environtment
 initialize_app(credential=cred)
 
-model_f_name = 'ssd_vgg16_model_weights.h5'
-model_f_name2 = 'ssd_vgg16_model_weights_v2.h5'
+model_f_name = 'vgg16_Id-32_2023-09-20.h5'
 
-home_dir = os.path.expanduser("~")
-model_dir = os.path.join('D:\\', '1.Skripsi', 'SSD_VGG_TF_SKRIPSI', 'Workspace', 'trained_ssd')
+model_dir = os.path.join('D:\\', '1.Skripsi', 'SSD_VGG_TF_SKRIPSI', 'Workspace', 'trained_model')
 model_path = os.path.join(model_dir, model_f_name)
 model_size = os.path.getsize(model_path)
 print(model_path)
@@ -19,13 +17,15 @@ print(model_size/1000)
 bucket = storage.bucket(name='cloud-mqtt-detection.appspot.com')
 def upload_data(): 
     print('uploading ..')
-    blob = bucket.blob(model_f_name2)
+    blob = bucket.blob(model_f_name)
     blob.upload_from_filename(model_path)
     print('done uploading')
 
 def download_data():
     l_blobs = bucket.list_blobs(max_results=3)
     for blob in l_blobs:
+        print(blob)
+
         blob_path = os.path.join(model_dir, blob.name)
         if os.path.exists(blob_path):
             print('{} is already exist'.format(blob.name))

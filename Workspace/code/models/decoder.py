@@ -6,7 +6,7 @@ from utils import bbox_utils
 @tf.keras.utils.register_keras_serializable()
 class SSDDecoder(Layer):
 
-    def __init__(self, anchors, variances, max_total_size=200, score_threshold=0.5, **kwargs):
+    def __init__(self, anchors, variances, max_total_size=50, score_threshold=0.5, **kwargs):
         super(SSDDecoder, self).__init__(**kwargs)
         self.anchors = anchors
         self.variances = variances
