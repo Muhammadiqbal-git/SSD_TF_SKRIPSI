@@ -11,8 +11,7 @@ import tensorflow as tf
 model_path = "D:\\1.Skripsi\\SSD_VGG_TF_SKRIPSI\\Workspace\\trained_model\\vgg16_Id-32_2023-09-20.h5"
 custom_img_dir = data_utils.get_data_dir('custom_test_imgs')
 
-test_data = data_utils.single_custom_data_gen(custom_img_dir, 300, 300)
-data = tf.expand_dims(test_data[0], 0)
+data = data_utils.single_custom_data_gen(custom_img_dir, 300, 300)
 
 labels = ['background', 'face']
 

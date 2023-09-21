@@ -167,7 +167,7 @@ def get_custom_imgs(custom_image_path):
 
 
 def single_custom_data_gen(img_dir, final_height, final_width):
-    """Yielding custom entities as dataset.
+    """Yielding single custom entities as dataset.
     inputs:
         img_paths = custom image paths
         final_height = final image height after resizing
@@ -181,7 +181,8 @@ def single_custom_data_gen(img_dir, final_height, final_width):
     image = Image.open(img_path)
     resized_image = tf.image.convert_image_dtype(image, tf.float32)
     resized_image = tf.image.resize_with_pad(resized_image, final_height, final_width, method=tf.image.ResizeMethod.LANCZOS3)
-    return resized_image, tf.constant([[]], dtype=tf.float32), tf.constant([], dtype=tf.int32)
+    data = tf.expand_dims(resized_image, 0)
+    return data
 
 
 def custom_data_generator(img_paths, final_height, final_width):
