@@ -3,6 +3,5 @@ Workspace/voc_dataset/**
 Workspace/logs/**
 Workspace/custom_test_imgs/**
 Workspace/trained_weight/**
-
-
+Workspace/trained_model/**
 
