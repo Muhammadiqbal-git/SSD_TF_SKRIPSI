@@ -198,9 +198,9 @@ def create_tfds_feature(name_classes, num_classes, shard_lengths: tuple):
 
 def write_tf_record(dir, overwrite=True):
     custom_img_dir = os.path.join(dir, "all_imgs")
-    tfrecord_train_fname = os.path.join(dir, "humanist-train.tfrecord-00000-of-00001")
-    tfrecord_val_fname = os.path.join(dir, "humanist-validation.tfrecord-00000-of-00001")
-    tfrecord_test_fname = os.path.join(dir, "humanist-test.tfrecord-00000-of-00001")
+    tfrecord_train_fname = os.path.join(dir, "customist-train.tfrecord-00000-of-00001")
+    tfrecord_val_fname = os.path.join(dir, "customist-validation.tfrecord-00000-of-00001")
+    tfrecord_test_fname = os.path.join(dir, "customist-test.tfrecord-00000-of-00001")
     if (
         os.path.exists(tfrecord_train_fname)
         and os.path.exists(tfrecord_test_fname)

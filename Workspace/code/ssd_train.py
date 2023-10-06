@@ -7,13 +7,14 @@ from ssd_loss import SSDLoss
 from utils import bbox_utils, data_utils, io_utils, train_utils, tf_record_utils
 from models.ssd_vgg16_architecture import get_model, init_model
 
+# use -handle-gpu to fix gpu run out memory
 args = io_utils.handle_args()
 if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
 batch_size = 8
 epochs = 400
-load_weights = True
+load_weights = False
 with_voc_2012 = False
 use_custom_dataset = True
 backbone = args.backbone

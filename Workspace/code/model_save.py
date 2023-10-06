@@ -13,6 +13,7 @@ if args.handle_gpu:
 
 custom_data_dir = data_utils.get_data_dir('dataset')
 custom_img_dir = data_utils.get_data_dir('custom_test_imgs')
+custom_img_path = os.path.join(custom_img_dir, os.listdir(custom_img_dir)[0]) 
 
 _, info = data_utils.get_custom_dataset('test', custom_data_dir)
 labels = data_utils.get_labels(info)
@@ -26,18 +27,10 @@ ssd_model.load_weights(weight_path)
 
 data_types = data_utils.get_data_types()
 data_shapes = data_utils.get_data_shapes()
-test_data = data_utils.single_custom_data_gen(custom_img_dir, 300, 300)
+
 
 anchor = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
 ssd_decoder_model = get_decoder_model(ssd_model, anchor, hyper_params)
-data = tf.expand_dims(test_data[0], 0)
-
-pred_bboxes, pred_scores, pred_labels = ssd_decoder_model.predict(data, verbose=1)
-
-data = tf.squeeze(data)
-pred_bboxes = tf.squeeze(pred_bboxes)
-pred_scores = tf.squeeze(pred_scores)
-pred_labels = tf.squeeze(pred_labels)
 
 time_now = time.strftime("%Y-%m-%d")
 model_dir = data_utils.get_data_dir('trained_model')

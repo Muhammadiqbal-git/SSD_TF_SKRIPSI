@@ -6,7 +6,7 @@ import os
 cred = credentials.Certificate(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")) # add your Credentials keys path to sys environtment
 initialize_app(credential=cred)
 
-model_f_name = 'vgg16_Id-32_2023-09-20.h5'
+model_f_name = 'vgg16_Id-58_2023-10-06.h5'
 
 model_dir = os.path.join('D:\\', '1.Skripsi', 'SSD_VGG_TF_SKRIPSI', 'Workspace', 'trained_model')
 model_path = os.path.join(model_dir, model_f_name)
