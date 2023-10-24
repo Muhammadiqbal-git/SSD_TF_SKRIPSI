@@ -17,7 +17,7 @@ epochs = 100
 load_weights = False
 with_voc_2012 = False
 use_custom_dataset = True
-overwrite_dataset = False
+overwrite_dataset = True
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
 #
@@ -35,9 +35,6 @@ if use_custom_dataset:
 else:
     train_data, info = data_utils.get_dataset("voc/2007", "train", voc_data_dir)
     val_data, _ = data_utils.get_dataset("voc/2007", "validation", voc_data_dir)
-
-# data_utils.preview_data(train_data)
-# aa
 
 train_total_items = data_utils.get_total_item_size(info, "train")
 val_total_items = data_utils.get_total_item_size(info, "validation")
@@ -74,7 +71,7 @@ ssd_model_path = io_utils.get_model_path(backbone)
 if load_weights:
     ssd_model.load_weights(ssd_model_path)
 ssd_log_path = io_utils.get_log_path(backbone)
-# We calculate anchors for one time and use it for all operations because of the all images are the same sizes
+# Calculate anchors for one time and use it for all operations because of the all images are the same sizes
 anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
 ssd_train_feed = train_utils.generator(train_data, anchors, hyper_params)
 ssd_val_feed = train_utils.generator(val_data, anchors, hyper_params)

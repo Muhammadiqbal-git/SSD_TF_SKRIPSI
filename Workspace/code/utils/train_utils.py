@@ -72,8 +72,6 @@ def generator(dataset, anchors, hyper_params):
         yield inputs, outputs
     """
     while True:
-        print("tesss")
-        print(dataset)
         for image_data in dataset:
             img, gt_boxes, gt_labels = image_data
             actual_deltas, actual_labels = calculate_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params)

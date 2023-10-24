@@ -65,6 +65,8 @@ def resize_img(img_path, resize: tuple):
 def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
     """Process the data img and json from directory provided
 
+    (If there is no bounding box defined, it will create a default bbox consist of [0, 0, 0, 0] and with 'bg' as the label)
+
     Args:
         img_dir (str): directory of img and json folder
         resize (tuple): scalar value that will be used as resize img
@@ -84,7 +86,7 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
     data_list = []
     categories = {}
     data_instance = namedtuple("DataInstance", ["img_data", "labels", "label", "bbox"])
-    print(os.listdir(img_dir))
+    # print(os.listdir(img_dir))
     for data in os.listdir(img_dir):
         if not data.endswith(".jpeg"):
             continue
@@ -96,34 +98,40 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
             labels = {}
             label = []
             bbox = []
-            max_id = 0
-            for object_ in data["shapes"]:
-                if categories.values():
-                    max_id = max(categories.values()) + 1
-                if object_["label"] not in categories.keys():
-                    categories[object_["label"]] = max_id
-                labels[object_["label"]] = categories[object_["label"]]
-                bbx = object_["points"]
-                im_w = data["imageWidth"]
-                im_h = data["imageHeight"] 
-                pad_size_x = 0
-                pad_size_y = 0
-                if im_w > im_h:
-                    pad_size_y = (im_w - im_h) / 2
-                    im_h += im_w - im_h
-                else:
-                    pad_size_x = (im_h - im_w) / 2
-                    im_w += im_h - im_w
-                # [ymin, xmin, ymax, xmax] format
-                label.append(categories[object_["label"]])
-                bbox.append(
-                    [
-                        (bbx[0][1] + pad_size_y) / im_h,
-                        (bbx[0][0] + pad_size_x) / im_w,
-                        (bbx[1][1] + pad_size_y) / im_h,
-                        (bbx[1][0]+ pad_size_x) / im_w,
-                    ]
-                )
+            max_id = 1
+            if data["shapes"] == []:
+                categories["bg"] = 0
+                labels["bg"] = 0
+                label.append(0)
+                bbox = [[0.0, 0.0, 0.0, 0.0]]
+            else:
+                for object_ in data["shapes"]:
+                    if categories.values():
+                        max_id = max(categories.values()) + 1
+                    if object_["label"] not in categories.keys():
+                        categories[object_["label"]] = max_id
+                    labels[object_["label"]] = categories[object_["label"]]
+                    bbx = object_["points"]
+                    im_w = data["imageWidth"]
+                    im_h = data["imageHeight"] 
+                    pad_size_x = 0
+                    pad_size_y = 0
+                    if im_w > im_h:
+                        pad_size_y = (im_w - im_h) / 2
+                        im_h += im_w - im_h
+                    else:
+                        pad_size_x = (im_h - im_w) / 2
+                        im_w += im_h - im_w
+                    # [ymin, xmin, ymax, xmax] format
+                    label.append(categories[object_["label"]])
+                    bbox.append(
+                        [
+                            (bbx[0][1] + pad_size_y) / im_h,
+                            (bbx[0][0] + pad_size_x) / im_w,
+                            (bbx[1][1] + pad_size_y) / im_h,
+                            (bbx[1][0]+ pad_size_x) / im_w,
+                        ]
+                    )
         data_list.append(
             data_instance(
                 img_data=encoded_img.numpy(),
@@ -132,7 +140,6 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
                 bbox=bbox,
             )
         )
-    print(categories)
     random.seed(17)
     random.shuffle(data_list)
     split_train = int(len(data_list) * split_number[0])
@@ -168,7 +175,6 @@ def create_tfds_data_dict(data, categories):
 
 
 def create_tfds_feature(name_classes, num_classes, shard_lengths: tuple):
-    # TODO ADD LABELS NAME IN LABELS KEYS
     features = tfds.features.FeaturesDict(
         {
             "image": tfds.features.Image(encoding_format="jpeg", doc="test"),
@@ -196,8 +202,14 @@ def create_tfds_feature(name_classes, num_classes, shard_lengths: tuple):
     return features, split_info
 
 
-def write_tf_record(dir, overwrite=True):
-    custom_img_dir = os.path.join(dir, "all_imgs")
+def write_tf_record(dir, overwrite):
+    """Write dataset in TF Record format
+
+    Args:
+        dir (str): target directory of written dataset, must have 'src_imgs' folder as the images will be used.
+        overwrite (bool): wheter or not the tfrecord dataset will be overwritten.
+    """
+    custom_img_dir = os.path.join(dir, "src_imgs")
     tfrecord_train_fname = os.path.join(dir, "customist-train.tfrecord-00000-of-00001")
     tfrecord_val_fname = os.path.join(dir, "customist-validation.tfrecord-00000-of-00001")
     tfrecord_test_fname = os.path.join(dir, "customist-test.tfrecord-00000-of-00001")
@@ -222,7 +234,7 @@ def write_tf_record(dir, overwrite=True):
         num_classes=len(categories),
         shard_lengths=(len(data_train), len(data_val), len(data_test)),
     )
-
+    # write the .tfrecord file
     for split_of_data, split_of_fname in zip(
         (data_train, data_val, data_test),
         (tfrecord_train_fname, tfrecord_val_fname, tfrecord_test_fname),
@@ -232,7 +244,7 @@ def write_tf_record(dir, overwrite=True):
                 data_dict = create_tfds_data_dict(data=data, categories=categories)
                 ex_byte = features.serialize_example(data_dict)
                 writer.write(ex_byte)
-
+    # write the tfrecord metadata
     tfds.folder_dataset.write_metadata(
         data_dir=dir,
         features=features,

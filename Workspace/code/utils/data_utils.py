@@ -41,8 +41,8 @@ def preview_data(dataset):
         print(data["image"][300, 300, :])
         image = tf.image.convert_image_dtype(data["image"], tf.float32)
         print(image[300, 300, :])
-        print(data["labels"])
-        print(data["objects"]["label"])
+        print("labels = {}".format(data["labels"]))
+        print("label = {}".format(data["objects"]["label"]))
         print(data["objects"]["bbox"])
         print("ss")
         bboxs = data["objects"]["bbox"] # [ymin, xmax, ymax, xmax]
