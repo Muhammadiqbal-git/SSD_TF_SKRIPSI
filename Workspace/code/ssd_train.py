@@ -13,21 +13,22 @@ if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
 batch_size = 8
-epochs = 400
+epochs = 100
 load_weights = False
 with_voc_2012 = False
 use_custom_dataset = True
+overwrite_dataset = False
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
 #
 
 hyper_params = train_utils.get_hyper_params(backbone)
 #
-custom_data_dir = data_utils.get_data_dir("dataset")
+custom_data_dir = data_utils.get_data_dir("custom_dataset")
 voc_data_dir = data_utils.get_data_dir("voc")
 
 if use_custom_dataset:
-    tf_record_utils.write_tf_record(custom_data_dir, overwrite=False)
+    tf_record_utils.write_tf_record(custom_data_dir, overwrite=overwrite_dataset)
     train_data, info = data_utils.get_custom_dataset("train", custom_data_dir, epochs)
     val_data, _ = data_utils.get_custom_dataset("validation", custom_data_dir, epochs)
     test_data, _ = data_utils.get_custom_dataset("test", custom_data_dir)
@@ -40,6 +41,7 @@ else:
 
 train_total_items = data_utils.get_total_item_size(info, "train")
 val_total_items = data_utils.get_total_item_size(info, "validation")
+print(train_total_items)
 
 if with_voc_2012 and not use_custom_dataset:
     voc_2012_data, voc_2012_info = data_utils.get_dataset("voc/2012", "train", voc_data_dir)

@@ -71,17 +71,17 @@ def get_data_dir(subset):
     """get dataset directory
 
     Args:
-        subset (String): get dataset directory in subfolder "code", should be one of ["imgs", "custom_test_imgs", "voc"]
+        subset (String): get dataset directory in subfolder "code", should be one of ["custom_dataset", "inference", "voc"]
                         if not provided, it will get the "subset" folder within the same level.
 
     Returns:
         String: a directory of dataset.
     """
     par_dir = os.path.dirname(os.getcwd())
-    if subset=="dataset":
+    if subset=="custom_dataset":
         return os.path.join(par_dir, "imgs")
-    elif subset=="custom":
-        return os.path.join(par_dir, "custom_test_imgs")
+    elif subset=="inference":
+        return os.path.join(par_dir, "inference_test_imgs")
     elif subset=="voc":
         return os.path.join(par_dir, "voc_dataset")
     else:

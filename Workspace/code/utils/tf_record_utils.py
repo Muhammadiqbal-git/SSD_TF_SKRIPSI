@@ -241,5 +241,5 @@ def write_tf_record(dir, overwrite=True):
     )
     # builder = tfds.builder_from_directory(dir)
     # print(builder.as_dataset())
-    print("Done!")
+    print("Generating custom TF Record Done!")
     # with tf.io.TFRecordWriter()

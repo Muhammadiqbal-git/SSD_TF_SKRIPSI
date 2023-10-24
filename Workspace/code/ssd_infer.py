@@ -19,8 +19,8 @@ io_utils.is_valid_backbone(backbone)
 
 hyper_params = train_utils.get_hyper_params(backbone)
 
-custom_data_dir = data_utils.get_data_dir("dataset")
-custom_img_dir = data_utils.get_data_dir("custom_test_imgs")
+custom_data_dir = data_utils.get_data_dir("custom_dataset")
+custom_img_dir = data_utils.get_data_dir("inference")
 voc_data_dir = data_utils.get_data_dir("voc")
 
 if use_custom_dataset:
