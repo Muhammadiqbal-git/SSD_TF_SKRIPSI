@@ -103,9 +103,9 @@ def flip_horizontally(img, gt_boxes):
     """
     flipped_img = tf.image.flip_left_right(img)
     flipped_gt_boxes = tf.stack([gt_boxes[..., 0],
-                                1.0 - gt_boxes[..., 3],
-                                gt_boxes[..., 2],
-                                1.0 - gt_boxes[..., 1]], -1)
+                            1.0 - gt_boxes[..., 3],
+                            gt_boxes[..., 2],
+                            1.0 - gt_boxes[..., 1]], -1)
     return flipped_img, flipped_gt_boxes
 
 ##############################################################################
@@ -174,7 +174,9 @@ def patch(img, gt_boxes):
         tf.shape(img),
         bounding_boxes=tf.expand_dims(gt_boxes, 0),
         aspect_ratio_range=[0.5, 2.0],
-        min_object_covered=min_overlap)
+        min_object_covered=min_overlap,
+        # use_image_if_no_bounding_boxes=True
+        )
     #
     img = tf.slice(img, begin, size)
     img = tf.image.resize(img, (org_height, org_width))

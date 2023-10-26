@@ -98,40 +98,37 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
             labels = {}
             label = []
             bbox = []
-            max_id = 1
+            max_id = 0
             if data["shapes"] == []:
-                categories["bg"] = 0
-                labels["bg"] = 0
-                label.append(0)
-                bbox = [[0.0, 0.0, 0.0, 0.0]]
-            else:
-                for object_ in data["shapes"]:
-                    if categories.values():
-                        max_id = max(categories.values()) + 1
-                    if object_["label"] not in categories.keys():
-                        categories[object_["label"]] = max_id
-                    labels[object_["label"]] = categories[object_["label"]]
-                    bbx = object_["points"]
-                    im_w = data["imageWidth"]
-                    im_h = data["imageHeight"] 
-                    pad_size_x = 0
-                    pad_size_y = 0
-                    if im_w > im_h:
-                        pad_size_y = (im_w - im_h) / 2
-                        im_h += im_w - im_h
-                    else:
-                        pad_size_x = (im_h - im_w) / 2
-                        im_w += im_h - im_w
-                    # [ymin, xmin, ymax, xmax] format
-                    label.append(categories[object_["label"]])
-                    bbox.append(
-                        [
-                            (bbx[0][1] + pad_size_y) / im_h,
-                            (bbx[0][0] + pad_size_x) / im_w,
-                            (bbx[1][1] + pad_size_y) / im_h,
-                            (bbx[1][0]+ pad_size_x) / im_w,
-                        ]
-                    )
+                print(data)
+                raise Exception("Data kosong terdeteksi")
+            for object_ in data["shapes"]:
+                if categories.values():
+                    max_id = max(categories.values()) + 1
+                if object_["label"] not in categories.keys():
+                    categories[object_["label"]] = max_id
+                labels[object_["label"]] = categories[object_["label"]]
+                bbx = object_["points"]
+                im_w = data["imageWidth"]
+                im_h = data["imageHeight"] 
+                pad_size_x = 0
+                pad_size_y = 0
+                if im_w > im_h:
+                    pad_size_y = (im_w - im_h) / 2
+                    im_h += im_w - im_h
+                else:
+                    pad_size_x = (im_h - im_w) / 2
+                    im_w += im_h - im_w
+                # [ymin, xmin, ymax, xmax] format
+                label.append(categories[object_["label"]])
+                bbox.append(
+                    [
+                        (bbx[0][1] + pad_size_y) / im_h,
+                        (bbx[0][0] + pad_size_x) / im_w,
+                        (bbx[1][1] + pad_size_y) / im_h,
+                        (bbx[1][0]+ pad_size_x) / im_w,
+                    ]
+                )
         data_list.append(
             data_instance(
                 img_data=encoded_img.numpy(),
@@ -142,8 +139,10 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
         )
     random.seed(17)
     random.shuffle(data_list)
+    categories = dict(sorted(categories.items(), key=lambda x:x[1]))
     split_train = int(len(data_list) * split_number[0])
     split_val = int(len(data_list) * split_number[1]) + split_train
+    # aa
     data_train, data_val, data_test = (
         data_list[:split_train],
         data_list[split_train:split_val],
@@ -180,12 +179,14 @@ def create_tfds_feature(name_classes, num_classes, shard_lengths: tuple):
             "image": tfds.features.Image(encoding_format="jpeg", doc="test"),
             "labels": tfds.features.Sequence(
                 tfds.features.ClassLabel(
-                    names=name_classes),
+                    names=name_classes,
+                    ),
             ),
             "objects": tfds.features.Sequence(
                 {
                     "label": tfds.features.ClassLabel(
-                        names=name_classes),
+                        names=name_classes,
+                        ),
                     "bbox": tfds.features.BBoxFeature(),
                 }
             ),
@@ -229,6 +230,7 @@ def write_tf_record(dir, overwrite):
     data_train, data_val, data_test, categories = get_custom_data(
         img_dir=custom_img_dir, resize=(500, 500), split_number=(0.7, 0.2)
     )
+    print(categories)
     features, split_info = create_tfds_feature(
         name_classes=list(categories.keys()),
         num_classes=len(categories),

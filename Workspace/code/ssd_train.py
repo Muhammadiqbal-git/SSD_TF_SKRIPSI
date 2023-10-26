@@ -13,11 +13,11 @@ if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
 batch_size = 8
-epochs = 100
-load_weights = False
+epochs = 400
 with_voc_2012 = False
 use_custom_dataset = True
 overwrite_dataset = True
+load_weights = False
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
 #
@@ -39,6 +39,8 @@ else:
 train_total_items = data_utils.get_total_item_size(info, "train")
 val_total_items = data_utils.get_total_item_size(info, "validation")
 print(train_total_items)
+# data_utils.preview_data(train_data)
+# aa
 
 if with_voc_2012 and not use_custom_dataset:
     voc_2012_data, voc_2012_info = data_utils.get_dataset("voc/2012", "train", voc_data_dir)
@@ -47,12 +49,17 @@ if with_voc_2012 and not use_custom_dataset:
     train_data = train_data.concatenate(voc_2012_data)
 
 labels = data_utils.get_labels(info)
-labels = ["bg"] + labels
+labels = ["background"] + labels
+print(labels)
 
 hyper_params["total_labels"] = len(labels)
 img_size = hyper_params["img_size"]
 
-train_data = train_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size, augmentator.apply))
+train_data = train_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size))
+for i, data in enumerate(train_data):
+    print(data)
+    if i == 1:
+        break
 val_data = val_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size))
 
 data_shapes = data_utils.get_data_shapes()

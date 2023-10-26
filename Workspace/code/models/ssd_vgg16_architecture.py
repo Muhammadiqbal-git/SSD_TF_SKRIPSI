@@ -16,13 +16,8 @@ def get_model(hyper_params):
     Output:
         ssd_model (tf.keras.Model): a ssd model with backbone vgg16
     """
-
-    scale_factor = 20.0
     reg_factor = 5e-4
-    total_labels = hyper_params["total_labels"]
     # +1 for ratio 1 based in the original ssd paper
-    len_aspect_ratio = [len(x) + 1 for x in hyper_params["aspect_ratios"]]
-
     # vgg = VGG16(input_shape=(None, None, 3), include_top=False)
     # conv4_3 = vgg.get_layer("block4_conv3").output
     # pool4 = MaxPool2D((2, 2), strides=(2, 2), padding="same", name="pool4")(conv4_3)
@@ -86,4 +81,4 @@ def init_model(model):
         model (tf.keras.Model): _description_
     """
     model(tf.random.uniform((1, 300, 300, 3)))
-    # model.summary()
+    model.summary()
