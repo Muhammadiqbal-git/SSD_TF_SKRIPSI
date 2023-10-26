@@ -49,8 +49,8 @@ def convert_to_jpeg(img_path):
 
 
 def resize_img(img_path, resize: tuple):
-    height = resize[0]
-    width = resize[1]
+    width = resize[0]
+    height = resize[1]
     with tf.io.gfile.GFile(img_path, "rb") as f:
         encoded_img = f.read()
         decoded_img = tf.io.decode_jpeg(encoded_img, channels=3)
@@ -126,9 +126,17 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
                         (bbx[0][1] + pad_size_y) / im_h,
                         (bbx[0][0] + pad_size_x) / im_w,
                         (bbx[1][1] + pad_size_y) / im_h,
-                        (bbx[1][0]+ pad_size_x) / im_w,
+                        (bbx[1][0] + pad_size_x) / im_w,
                     ]
                 )
+                if (bbx[0][1] + pad_size_y) / im_h >= (bbx[1][1] + pad_size_y) / im_h:
+                    print(data)
+                    print("aaa")
+                    break
+                if (bbx[0][0] + pad_size_x) / im_w >= (bbx[1][0] + pad_size_x) / im_w:
+                    print(data)
+                    print("aaas")
+                    break
         data_list.append(
             data_instance(
                 img_data=encoded_img.numpy(),
@@ -203,7 +211,7 @@ def create_tfds_feature(name_classes, num_classes, shard_lengths: tuple):
     return features, split_info
 
 
-def write_tf_record(dir, overwrite):
+def write_tf_record(dir, overwrite, img_size: tuple):
     """Write dataset in TF Record format
 
     Args:
@@ -228,7 +236,7 @@ def write_tf_record(dir, overwrite):
         convert_to_jpeg(img_path=img_path)
 
     data_train, data_val, data_test, categories = get_custom_data(
-        img_dir=custom_img_dir, resize=(500, 500), split_number=(0.7, 0.2)
+        img_dir=custom_img_dir, resize=img_size, split_number=(0.7, 0.2)
     )
     print(categories)
     features, split_info = create_tfds_feature(

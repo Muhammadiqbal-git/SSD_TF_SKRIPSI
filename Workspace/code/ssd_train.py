@@ -12,12 +12,12 @@ args = io_utils.handle_args()
 if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
-batch_size = 8
-epochs = 400
+batch_size = 4
+epochs = 1000
 with_voc_2012 = False
 use_custom_dataset = True
-overwrite_dataset = True
-load_weights = False
+overwrite_dataset = False
+load_weights = True
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
 #
@@ -28,7 +28,7 @@ custom_data_dir = data_utils.get_data_dir("custom_dataset")
 voc_data_dir = data_utils.get_data_dir("voc")
 
 if use_custom_dataset:
-    tf_record_utils.write_tf_record(custom_data_dir, overwrite=overwrite_dataset)
+    tf_record_utils.write_tf_record(custom_data_dir, overwrite=overwrite_dataset, img_size=(500, 500))
     train_data, info = data_utils.get_custom_dataset("train", custom_data_dir, epochs)
     val_data, _ = data_utils.get_custom_dataset("validation", custom_data_dir, epochs)
     test_data, _ = data_utils.get_custom_dataset("test", custom_data_dir)
@@ -55,12 +55,12 @@ print(labels)
 hyper_params["total_labels"] = len(labels)
 img_size = hyper_params["img_size"]
 
-train_data = train_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size))
-for i, data in enumerate(train_data):
-    print(data)
-    if i == 1:
-        break
-val_data = val_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size))
+train_data = train_data.map(lambda x : data_utils.preprocessing(x, img_size[1], img_size[0], augmentator.apply))
+# for i, data in enumerate(train_data):
+#     print(data)
+#     if i == 1:
+#         break
+val_data = val_data.map(lambda x : data_utils.preprocessing(x, img_size[1], img_size[0]))
 
 data_shapes = data_utils.get_data_shapes()
 padding_values = data_utils.get_padding_values()
@@ -72,10 +72,9 @@ ssd_custom_losses = SSDLoss(hyper_params["neg_pos_ratio"], hyper_params["loc_los
 ssd_model.compile(optimizer=Adam(learning_rate=1e-3),
                   loss=[ssd_custom_losses.loc_loss_fn, ssd_custom_losses.conf_loss_fn])
 init_model(ssd_model)
-
-#
 ssd_model_path = io_utils.get_model_path(backbone)
 if load_weights:
+    train_utils.loaded_weight = load_weights
     ssd_model.load_weights(ssd_model_path)
 ssd_log_path = io_utils.get_log_path(backbone)
 # Calculate anchors for one time and use it for all operations because of the all images are the same sizes

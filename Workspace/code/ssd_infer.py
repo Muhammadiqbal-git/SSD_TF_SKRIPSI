@@ -10,7 +10,7 @@ args = io_utils.handle_args()
 if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
-batch_size = 8
+batch_size = 4
 evaluate = False
 use_custom_images = True
 use_custom_dataset = True

@@ -4,8 +4,8 @@ from utils import bbox_utils
 
 SSD = {
     "vgg16": {
-        "img_size": [640, 480],
-        "feature_map_shapes": [38, 19, 10, 5, 3, 1],
+        "img_size": [500, 500],
+        "feature_map_shapes": [62, 31, 16, 8, 6, 4],
         "aspect_ratios": [[1., 2./3., 1./2.],
                          [1., 2., 1./2., 2./3., 1./3.],
                          [1., 2., 1./2., 2./3., 1./3.],
@@ -14,6 +14,7 @@ SSD = {
                          [1., 2., 1./2.]],
     },
 }
+loaded_weight = False
 
 def get_hyper_params(backbone="vgg16", **kwargs):
     """Generating hyper params in a dynamic way.
@@ -42,13 +43,15 @@ def scheduler(epoch):
     outputs:
         learning_rate : float learning rate value
     """
-    if epoch < 50:
+    if loaded_weight:
+        return 1e-5
+    if epoch < 25:
         return 1e-3
-    elif epoch < 100:
+    elif epoch < 50:
         return 1e-4
-    elif epoch < 200:
+    elif epoch < 100:
         return 1.5e-4
-    elif epoch < 300:
+    elif epoch < 200:
         return 1e-5
     else:
         return 1e-6
