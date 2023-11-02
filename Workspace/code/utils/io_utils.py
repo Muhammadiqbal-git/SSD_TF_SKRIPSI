@@ -46,8 +46,8 @@ def handle_args():
     parser = argparse.ArgumentParser(description="SSD: Single Shot MultiBox Detector Implementation")
     parser.add_argument("-handle-gpu", action="store_true", help="Tensorflow 2 GPU compatibility flag")
     parser.add_argument("--backbone", required=False,
-                        default="vgg16",
-                        metavar="['vgg16']",
+                        default="mobilenet_v2",
+                        metavar="['mobilenet_v2']",
                         help="Which backbone used for the ssd")
     args = parser.parse_args()
     return args

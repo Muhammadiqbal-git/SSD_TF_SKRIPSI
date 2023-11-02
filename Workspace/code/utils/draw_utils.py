@@ -74,8 +74,6 @@ def draw_bboxes_with_labels(img, bboxes, label_indices, probs, labels):
 def draw_predictions(dataset, pred_bboxes, pred_labels, pred_scores, labels, batch_size):
     for batch_id, image_data in enumerate(dataset):
         imgs, _, _ = image_data
-        print(imgs.shape)
-        print("asdaaa")
         img_size = imgs.shape[1]
         start = batch_id * batch_size
         end = start + batch_size

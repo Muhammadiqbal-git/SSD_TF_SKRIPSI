@@ -145,7 +145,7 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
                 bbox=bbox,
             )
         )
-    random.seed(17)
+    random.seed(31)
     random.shuffle(data_list)
     categories = dict(sorted(categories.items(), key=lambda x:x[1]))
     split_train = int(len(data_list) * split_number[0])

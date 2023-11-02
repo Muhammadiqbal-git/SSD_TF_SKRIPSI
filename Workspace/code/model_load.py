@@ -13,7 +13,7 @@ model_path = "D:\\1.Skripsi\\SSD_VGG_TF_SKRIPSI\\Workspace\\trained_model\\vgg16
 custom_img_dir = data_utils.get_data_dir('custom_test_imgs')
 img_path = os.path.join(custom_img_dir, os.listdir(custom_img_dir)[0])
 
-data = data_utils.single_custom_data_gen(img_path, 300, 300)
+data = data_utils.single_custom_data_gen(img_path, 500, 500)
 
 labels = ['background', 'face']
 

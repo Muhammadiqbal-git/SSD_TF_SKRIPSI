@@ -5,7 +5,7 @@ from keras.regularizers import L2
 from keras.applications import VGG16
 from models.prediction_head import get_head_from_outputs
 # header
-
+# THIS ARCHITECTURE TOO BIG FOR GTX1050 3GB AND I5 7500 3.4 GHZ
 
 def get_model(hyper_params):
     """Generate ssd model and hyper params
@@ -48,6 +48,7 @@ def get_model(hyper_params):
     conv5_3 = Conv2D(256, (3, 3), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv5_3")(conv5_2)
     pool5 = MaxPool2D((3, 3), strides=(1, 1), padding="same", name="pool5")(conv5_3)
     # conv6 and conv7 converted from fc6 and fc7 and remove dropouts
+    # conv7 halved
     conv6 = Conv2D(512, (3, 3), dilation_rate=6, padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv6")(pool5)
     conv7 = Conv2D(512, (1, 1), strides=(1, 1), padding="same", activation="relu", kernel_initializer="glorot_normal", kernel_regularizer=L2(reg_factor), name="conv7")(conv6)
     ############################ Extra Feature Layers Start ############################

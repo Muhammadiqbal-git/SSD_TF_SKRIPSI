@@ -13,10 +13,20 @@ SSD = {
                          [1., 2., 1./2.],
                          [1., 2., 1./2.]],
     },
+    "mobilenet_v2": {
+        "img_size": [500, 500],
+        "feature_map_shapes": [32, 16, 8, 4, 2, 1],
+        "aspect_ratios": [[1., 1./3., 1./2.],
+                         [1., 1./4., 1./2., 2./3., 1./3.],
+                         [1., 1./4., 1./2., 2./3., 1./3.],
+                         [1., 1./4., 1./2., 2./3., 1./3.],
+                         [1., 2./3., 1./2.],
+                         [1., 2./3., 1./2.]],
+    },
 }
 loaded_weight = False
 
-def get_hyper_params(backbone="vgg16", **kwargs):
+def get_hyper_params(backbone="mobilenet_v2", **kwargs):
     """Generating hyper params in a dynamic way.
     inputs:
         **kwargs : any value could be updated in the hyper_params, default to 'vgg16'

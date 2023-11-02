@@ -5,7 +5,6 @@ from keras.optimizers import SGD, Adam
 import augmentator
 from ssd_loss import SSDLoss
 from utils import bbox_utils, data_utils, io_utils, train_utils, tf_record_utils
-from models.ssd_vgg16_architecture import get_model, init_model
 
 # use -handle-gpu to fix gpu run out memory
 args = io_utils.handle_args()
@@ -13,14 +12,18 @@ if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
 batch_size = 4
-epochs = 1000
+epochs = 500
 with_voc_2012 = False
 use_custom_dataset = True
-overwrite_dataset = False
-load_weights = True
+overwrite_dataset = True
+load_weights = False
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
 #
+if backbone == "mobilenet_v2":
+    from models.ssd_mobilenet_v2 import get_model, init_model
+else:
+    from models.ssd_vgg16_architecture import get_model, init_model
 
 hyper_params = train_utils.get_hyper_params(backbone)
 #
@@ -29,15 +32,13 @@ voc_data_dir = data_utils.get_data_dir("voc")
 
 if use_custom_dataset:
     tf_record_utils.write_tf_record(custom_data_dir, overwrite=overwrite_dataset, img_size=(500, 500))
-    train_data, info = data_utils.get_custom_dataset("train", custom_data_dir, epochs)
-    val_data, _ = data_utils.get_custom_dataset("validation", custom_data_dir, epochs)
-    test_data, _ = data_utils.get_custom_dataset("test", custom_data_dir)
+    train_data, info, train_total_items = data_utils.get_custom_dataset("train", custom_data_dir, epochs)
+    val_data, _, val_total_items = data_utils.get_custom_dataset("validation", custom_data_dir, epochs)
+    test_data, _, _ = data_utils.get_custom_dataset("test", custom_data_dir)
 else:
     train_data, info = data_utils.get_dataset("voc/2007", "train", voc_data_dir)
     val_data, _ = data_utils.get_dataset("voc/2007", "validation", voc_data_dir)
 
-train_total_items = data_utils.get_total_item_size(info, "train")
-val_total_items = data_utils.get_total_item_size(info, "validation")
 print(train_total_items)
 # data_utils.preview_data(train_data)
 # aa

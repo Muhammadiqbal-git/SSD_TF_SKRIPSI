@@ -128,7 +128,7 @@ def get_custom_dataset(split, data_dir, epochs=1):
     print("ds info")
     print(dataset)
     print(info.features["labels"].names)
-    return dataset, info
+    return dataset, info, info.splits[split].num_examples
 
 def get_total_item_size(info, split):
     """Get total item size for given split.

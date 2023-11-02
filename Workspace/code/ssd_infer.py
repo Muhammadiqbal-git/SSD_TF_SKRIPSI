@@ -2,7 +2,6 @@ import os
 import tensorflow as tf
 from utils import bbox_utils, data_utils, draw_utils, io_utils, train_utils, eval_utils
 from models.decoder import get_decoder_model
-from models.ssd_vgg16_architecture import get_model, init_model
 import numpy as np
 
 
@@ -12,10 +11,15 @@ if args.handle_gpu:
 
 batch_size = 4
 evaluate = False
-use_custom_images = True
 use_custom_dataset = True
+use_custom_images = True
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
+
+if backbone == "mobilenet_v2":
+    from models.ssd_mobilenet_v2 import get_model, init_model
+else:
+    from models.ssd_vgg16_architecture import get_model, init_model
 
 hyper_params = train_utils.get_hyper_params(backbone)
 
@@ -24,10 +28,10 @@ custom_img_dir = data_utils.get_data_dir("inference_test_imgs")
 voc_data_dir = data_utils.get_data_dir("voc")
 
 if use_custom_dataset:
-    test_data, info = data_utils.get_custom_dataset("validation", custom_data_dir)
+    test_data, info, total_items = data_utils.get_custom_dataset("test", custom_data_dir)
 else:
     test_data, info = data_utils.get_dataset("voc/2007", "test", voc_data_dir)
-total_items = data_utils.get_total_item_size(info, "validation")
+print(total_items)
 labels = data_utils.get_labels(info)
 labels = ["background"] + labels
 hyper_params["total_labels"] = len(labels)
