@@ -9,13 +9,8 @@ from models import prediction_head, decoder
 
 import tensorflow as tf
 
-<<<<<<< HEAD
-model_path = "D:\\Skripsi\\SSD_VGG_TF_SKRIPSI\\Workspace\\trained_model\\vgg16_Id-32_2023-09-20.h5"
-custom_img_dir = data_utils.get_data_dir('custom_test_imgs')
-=======
 model_path = "D:\\1.Skripsi\\SSD_VGG_TF_SKRIPSI\\Workspace\\trained_model\\12_2023-11-02_mobilenet_v2_Id-88.h5"
 custom_img_dir = data_utils.get_data_dir('inference')
->>>>>>> b6448648b53cc3ad3a019335f54b7a51a4a60d0d
 img_path = os.path.join(custom_img_dir, os.listdir(custom_img_dir)[0])
 
 data = data_utils.single_custom_data_gen(img_path, 500, 500)
