@@ -6,26 +6,29 @@ import numpy as np
 from matplotlib import pyplot as plt
 import cv2
 
-def preprocessing(image_data, final_height, final_width, augmentation_fn=None, evaluate=False):
+def preprocessing(data, final_height, final_width, augmentation_fn=None, evaluate=False):
     """Image resizing operation handled before batch operations.
+
+    this function also convert the text label to an +1 integer e.g ['bike', 'car', 'person'] to [1, 2, 3]
     Args:
-        image_data : tensorflow dataset image_data
+        image_data : tensorflow dataset 
         final_height : final image height after resizing
         final_width : final image width after resizing
 
-    outputs:
+    Returns:
         img : (final_height, final_width, channels)
         gt_boxes : (gt_box_size, [y1, x1, y2, x2])
         gt_labels : (gt_box_size)
     """
-    img = tf.image.convert_image_dtype(image_data["image"], tf.float32)
-    gt_boxes = image_data["objects"]["bbox"]
-    gt_labels = tf.cast(image_data["objects"]["label"] + 1, tf.int32)
+    img = tf.image.convert_image_dtype(data["image"], tf.float32)
+    gt_boxes = data["objects"]["bbox"]
+    gt_labels = tf.cast(data["objects"]["label"] + 1, tf.int32)
+
 
     img = tf.image.convert_image_dtype(img, tf.float32)
     img = tf.image.resize(img, (final_height, final_width))
     if evaluate:
-        not_diff = tf.logical_not(image_data["objects"]["is_difficult"])
+        not_diff = tf.logical_not(data["objects"]["is_difficult"])
         gt_boxes = gt_boxes[not_diff]
         gt_labels = gt_labels[not_diff]
     if augmentation_fn:
@@ -41,8 +44,8 @@ def preview_data(dataset):
         print(data["image"][300, 300, :])
         image = tf.image.convert_image_dtype(data["image"], tf.float32)
         print(image[300, 300, :])
-        print(data["labels"])
-        print(data["objects"]["label"])
+        print("labels = {}".format(data["labels"]))
+        print("label = {}".format(data["objects"]["label"]))
         print(data["objects"]["bbox"])
         print("ss")
         bboxs = data["objects"]["bbox"] # [ymin, xmax, ymax, xmax]
@@ -71,17 +74,17 @@ def get_data_dir(subset):
     """get dataset directory
 
     Args:
-        subset (String): get dataset directory in subfolder "code", should be one of ["imgs", "custom_test_imgs", "voc"]
+        subset (String): get dataset directory in subfolder "code", should be one of ["custom_dataset", "inference", "voc"]
                         if not provided, it will get the "subset" folder within the same level.
 
     Returns:
         String: a directory of dataset.
     """
     par_dir = os.path.dirname(os.getcwd())
-    if subset=="dataset":
+    if subset=="custom_dataset":
         return os.path.join(par_dir, "imgs")
-    elif subset=="custom":
-        return os.path.join(par_dir, "custom_test_imgs")
+    elif subset=="inference":
+        return os.path.join(par_dir, "inference_test_imgs")
     elif subset=="voc":
         return os.path.join(par_dir, "voc_dataset")
     else:
@@ -90,12 +93,12 @@ def get_data_dir(subset):
 
 def get_dataset(name, split, data_dir):
     """Get tensorflow dataset split and info.
-    inputs:
+    Args:
         name = name of the dataset, voc/2007, voc/2012, etc.
         split = data split string, should be one of ["train", "validation", "test"]
         data_dir = read/write path for tensorflow datasets
 
-    outputs:
+    Returns:
         dataset = tensorflow dataset split
         info = tensorflow dataset info
     """
@@ -108,12 +111,12 @@ def get_dataset(name, split, data_dir):
 
 def get_custom_dataset(split, data_dir, epochs=1):
     """Get tensorflow dataset split and info.
-    inputs:
+    Args:
         name = name of the dataset, voc/2007, voc/2012, etc.
         split = data split string, should be one of ["train", "validation", "test"]
         data_dir = read/write path for tensorflow datasets
 
-    outputs:
+    Returns:
         dataset = tensorflow dataset split
         info = tensorflow dataset info
     """
@@ -125,15 +128,15 @@ def get_custom_dataset(split, data_dir, epochs=1):
     print("ds info")
     print(dataset)
     print(info.features["labels"].names)
-    return dataset, info
+    return dataset, info, info.splits[split].num_examples
 
 def get_total_item_size(info, split):
     """Get total item size for given split.
-    inputs:
+    Args:
         info = tensorflow dataset info
         split = data split string, should be one of ["train", "validation", "test"]
 
-    outputs:
+    Returns:
         total_item_size = number of total items
     """
     assert split in ["train", "train+validation", "validation", "test"], "split must be in format with one of these"
@@ -143,19 +146,19 @@ def get_total_item_size(info, split):
 
 def get_labels(info):
     """Get label names list.
-    inputs:
+    Args:
         info = tensorflow dataset info
 
-    outputs:
+    Returns:
         labels = [labels list]
     """
     return info.features["labels"].names
 
 def get_custom_imgs(custom_image_path):
     """Generating a list of images for given path.
-    inputs:
+    Args:
         custom_image_path = folder of the custom images
-    outputs:
+    Returns:
         custom image list = [path1, path2]
     """
     img_paths = []
@@ -168,11 +171,11 @@ def get_custom_imgs(custom_image_path):
 
 def single_custom_data_gen(img_data, final_height, final_width):
     """Yielding single custom entities as dataset.
-    inputs:
+    Args:
         img_paths = custom image paths
         final_height = final image height after resizing
         final_width = final image width after resizing
-    outputs:
+    Returns:
         img = (final_height, final_width, depth)
         dummy_gt_boxes = (None, None)
         dummy_gt_labels = (None, )
@@ -186,11 +189,11 @@ def single_custom_data_gen(img_data, final_height, final_width):
 
 def custom_data_generator(img_paths, final_height, final_width):
     """Yielding custom entities as dataset.
-    inputs:
+    Args:
         img_paths = custom image paths
         final_height = final image height after resizing
         final_width = final image width after resizing
-    outputs:
+    Returns:
         img = (final_height, final_width, depth)
         dummy_gt_boxes = (None, None)
         dummy_gt_labels = (None, )
@@ -203,21 +206,21 @@ def custom_data_generator(img_paths, final_height, final_width):
 
 def get_data_types():
     """Generating data types for tensorflow datasets.
-    outputs:
+    Returns:
         data types = output data types for (images, ground truth boxes, ground truth labels)
     """
     return (tf.float32, tf.float32, tf.int32)
 
 def get_data_shapes():
     """Generating data shapes for tensorflow datasets.
-    outputs:
+    Returns:
         data shapes = output data shapes for (images, ground truth boxes, ground truth labels)
     """
     return ([None, None, None], [None, None], [None,])
 
 def get_padding_values():
     """Generating padding values for missing values in batch for tensorflow datasets.
-    outputs:
+    Returns:
         padding values = padding values with dtypes for (images, ground truth boxes, ground truth labels)
     """
     return (tf.constant(0, tf.float32), tf.constant(0, tf.float32), tf.constant(-1, tf.int32))

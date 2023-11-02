@@ -4,8 +4,8 @@ from utils import bbox_utils
 
 SSD = {
     "vgg16": {
-        "img_size": 300,
-        "feature_map_shapes": [38, 19, 10, 5, 3, 1],
+        "img_size": [500, 500],
+        "feature_map_shapes": [62, 31, 16, 8, 6, 4],
         "aspect_ratios": [[1., 2./3., 1./2.],
                          [1., 2., 1./2., 2./3., 1./3.],
                          [1., 2., 1./2., 2./3., 1./3.],
@@ -13,9 +13,20 @@ SSD = {
                          [1., 2., 1./2.],
                          [1., 2., 1./2.]],
     },
+    "mobilenet_v2": {
+        "img_size": [500, 500],
+        "feature_map_shapes": [32, 16, 8, 4, 2, 1],
+        "aspect_ratios": [[1., 1./3., 1./2.],
+                         [1., 1./4., 1./2., 2./3., 1./3.],
+                         [1., 1./4., 1./2., 2./3., 1./3.],
+                         [1., 1./4., 1./2., 2./3., 1./3.],
+                         [1., 2./3., 1./2.],
+                         [1., 2./3., 1./2.]],
+    },
 }
+loaded_weight = False
 
-def get_hyper_params(backbone="vgg16", **kwargs):
+def get_hyper_params(backbone="mobilenet_v2", **kwargs):
     """Generating hyper params in a dynamic way.
     inputs:
         **kwargs : any value could be updated in the hyper_params, default to 'vgg16'
@@ -25,7 +36,7 @@ def get_hyper_params(backbone="vgg16", **kwargs):
     """
     hyper_params = SSD[backbone]
     hyper_params["iou_threshold"] = 0.50
-    hyper_params["neg_pos_ratio"] = 3
+    hyper_params["neg_pos_ratio"] = 2
     hyper_params["loc_loss_alpha"] = 1
     hyper_params["variances"] = [0.1, 0.1, 0.2, 0.2]
     for key, value in kwargs.items():
@@ -42,9 +53,15 @@ def scheduler(epoch):
     outputs:
         learning_rate : float learning rate value
     """
-    if epoch < 50:
+    if loaded_weight:
+        return 1e-5
+    if epoch < 25:
+        return 1e-3
+    elif epoch < 50:
         return 1e-4
-    elif epoch < 125:
+    elif epoch < 100:
+        return 1.5e-4
+    elif epoch < 200:
         return 1e-5
     else:
         return 1e-6

@@ -139,7 +139,7 @@ def abs2prop(bboxes, gt_boxes):
     return tf.stack([delta_y, delta_x, delta_h, delta_w], axis=-1)
 
 
-def scale_for_k_feature_map(k, m=6, scale_min=0.2, scale_max=0.9):
+def scale_for_k_feature_map(k, m=6, scale_min=0.1, scale_max=0.80):
     """Calculating scale value for kth feature map based on original SSD paper.
     Args:
         k (scalar): kth feature map for scale calculation

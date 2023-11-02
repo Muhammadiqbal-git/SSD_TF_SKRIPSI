@@ -5,40 +5,43 @@ from keras.optimizers import SGD, Adam
 import augmentator
 from ssd_loss import SSDLoss
 from utils import bbox_utils, data_utils, io_utils, train_utils, tf_record_utils
-from models.ssd_vgg16_architecture import get_model, init_model
 
+# use -handle-gpu to fix gpu run out memory
 args = io_utils.handle_args()
 if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
-batch_size = 8
-epochs = 400
-load_weights = True
+batch_size = 4
+epochs = 500
 with_voc_2012 = False
 use_custom_dataset = True
-backbone = args.backbone
-io_utils.is_valid_backbone(backbone)
+overwrite_dataset = True
+load_weights = False
+args.backbone
+io_utils.is_valid_backbone(args.backbone)
 #
+if args.backbone == "mobilenet_v2":
+    from models.ssd_mobilenet_v2 import get_model, init_model
+else:
+    from models.ssd_vgg16_architecture import get_model, init_model
 
-hyper_params = train_utils.get_hyper_params(backbone)
+hyper_params = train_utils.get_hyper_params(args.backbone)
 #
-custom_data_dir = data_utils.get_data_dir("dataset")
+custom_data_dir = data_utils.get_data_dir("custom_dataset")
 voc_data_dir = data_utils.get_data_dir("voc")
 
 if use_custom_dataset:
-    tf_record_utils.write_tf_record(custom_data_dir, overwrite=False)
-    train_data, info = data_utils.get_custom_dataset("train", custom_data_dir, epochs)
-    val_data, _ = data_utils.get_custom_dataset("validation", custom_data_dir, epochs)
-    test_data, _ = data_utils.get_custom_dataset("test", custom_data_dir)
+    tf_record_utils.write_tf_record(custom_data_dir, overwrite=overwrite_dataset, img_size=(500, 500))
+    train_data, info, train_total_items = data_utils.get_custom_dataset("train", custom_data_dir, epochs)
+    val_data, _, val_total_items = data_utils.get_custom_dataset("validation", custom_data_dir, epochs)
+    test_data, _, _ = data_utils.get_custom_dataset("test", custom_data_dir)
 else:
     train_data, info = data_utils.get_dataset("voc/2007", "train", voc_data_dir)
     val_data, _ = data_utils.get_dataset("voc/2007", "validation", voc_data_dir)
 
+print(train_total_items)
 # data_utils.preview_data(train_data)
 # aa
-
-train_total_items = data_utils.get_total_item_size(info, "train")
-val_total_items = data_utils.get_total_item_size(info, "validation")
 
 if with_voc_2012 and not use_custom_dataset:
     voc_2012_data, voc_2012_info = data_utils.get_dataset("voc/2012", "train", voc_data_dir)
@@ -47,13 +50,18 @@ if with_voc_2012 and not use_custom_dataset:
     train_data = train_data.concatenate(voc_2012_data)
 
 labels = data_utils.get_labels(info)
-labels = ["bg"] + labels
+labels = ["background"] + labels
+print(labels)
 
 hyper_params["total_labels"] = len(labels)
 img_size = hyper_params["img_size"]
 
-train_data = train_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size, augmentator.apply))
-val_data = val_data.map(lambda x : data_utils.preprocessing(x, img_size, img_size))
+train_data = train_data.map(lambda x : data_utils.preprocessing(x, img_size[1], img_size[0], augmentator.apply))
+# for i, data in enumerate(train_data):
+#     print(data)
+#     if i == 1:
+#         break
+val_data = val_data.map(lambda x : data_utils.preprocessing(x, img_size[1], img_size[0]))
 
 data_shapes = data_utils.get_data_shapes()
 padding_values = data_utils.get_padding_values()
@@ -65,13 +73,12 @@ ssd_custom_losses = SSDLoss(hyper_params["neg_pos_ratio"], hyper_params["loc_los
 ssd_model.compile(optimizer=Adam(learning_rate=1e-3),
                   loss=[ssd_custom_losses.loc_loss_fn, ssd_custom_losses.conf_loss_fn])
 init_model(ssd_model)
-
-#
-ssd_model_path = io_utils.get_model_path(backbone)
+ssd_model_path = io_utils.get_model_path(args.backbone)
 if load_weights:
+    train_utils.loaded_weight = load_weights
     ssd_model.load_weights(ssd_model_path)
-ssd_log_path = io_utils.get_log_path(backbone)
-# We calculate anchors for one time and use it for all operations because of the all images are the same sizes
+ssd_log_path = io_utils.get_log_path(args.backbone)
+# Calculate anchors for one time and use it for all operations because of the all images are the same sizes
 anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
 ssd_train_feed = train_utils.generator(train_data, anchors, hyper_params)
 ssd_val_feed = train_utils.generator(val_data, anchors, hyper_params)
