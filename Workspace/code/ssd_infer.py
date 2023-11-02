@@ -24,7 +24,7 @@ else:
 hyper_params = train_utils.get_hyper_params(backbone)
 
 custom_data_dir = data_utils.get_data_dir("custom_dataset")
-custom_img_dir = data_utils.get_data_dir("inference_test_imgs")
+custom_img_dir = data_utils.get_data_dir("inference")
 voc_data_dir = data_utils.get_data_dir("voc")
 
 if use_custom_dataset:

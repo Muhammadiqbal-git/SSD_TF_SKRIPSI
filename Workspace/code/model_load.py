@@ -9,13 +9,13 @@ from models import prediction_head, decoder
 
 import tensorflow as tf
 
-model_path = "D:\\1.Skripsi\\SSD_VGG_TF_SKRIPSI\\Workspace\\trained_model\\vgg16_Id-58_2023-10-06.h5"
-custom_img_dir = data_utils.get_data_dir('custom_test_imgs')
+model_path = "D:\\1.Skripsi\\SSD_VGG_TF_SKRIPSI\\Workspace\\trained_model\\12_2023-11-02_mobilenet_v2_Id-88.h5"
+custom_img_dir = data_utils.get_data_dir('inference')
 img_path = os.path.join(custom_img_dir, os.listdir(custom_img_dir)[0])
 
 data = data_utils.single_custom_data_gen(img_path, 500, 500)
 
-labels = ['background', 'face']
+labels = ['Background', 'Human']
 
 model = tf.keras.models.load_model(model_path, compile=False)
 print(type(model))

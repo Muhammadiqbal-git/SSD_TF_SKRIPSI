@@ -17,15 +17,15 @@ with_voc_2012 = False
 use_custom_dataset = True
 overwrite_dataset = True
 load_weights = False
-backbone = args.backbone
-io_utils.is_valid_backbone(backbone)
+args.backbone
+io_utils.is_valid_backbone(args.backbone)
 #
-if backbone == "mobilenet_v2":
+if args.backbone == "mobilenet_v2":
     from models.ssd_mobilenet_v2 import get_model, init_model
 else:
     from models.ssd_vgg16_architecture import get_model, init_model
 
-hyper_params = train_utils.get_hyper_params(backbone)
+hyper_params = train_utils.get_hyper_params(args.backbone)
 #
 custom_data_dir = data_utils.get_data_dir("custom_dataset")
 voc_data_dir = data_utils.get_data_dir("voc")
@@ -73,11 +73,11 @@ ssd_custom_losses = SSDLoss(hyper_params["neg_pos_ratio"], hyper_params["loc_los
 ssd_model.compile(optimizer=Adam(learning_rate=1e-3),
                   loss=[ssd_custom_losses.loc_loss_fn, ssd_custom_losses.conf_loss_fn])
 init_model(ssd_model)
-ssd_model_path = io_utils.get_model_path(backbone)
+ssd_model_path = io_utils.get_model_path(args.backbone)
 if load_weights:
     train_utils.loaded_weight = load_weights
     ssd_model.load_weights(ssd_model_path)
-ssd_log_path = io_utils.get_log_path(backbone)
+ssd_log_path = io_utils.get_log_path(args.backbone)
 # Calculate anchors for one time and use it for all operations because of the all images are the same sizes
 anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
 ssd_train_feed = train_utils.generator(train_data, anchors, hyper_params)
