@@ -4,12 +4,12 @@
 
 from utils import data_utils, draw_utils
 import os
-# from models import prediction_head, decoder
+from models import prediction_head, decoder
 
 
 import tensorflow as tf
 
-model_path = "D:\\1.Skripsi\\SSD_VGG_TF_SKRIPSI\\Workspace\\trained_model\\vgg16_Id-32_2023-09-20.h5"
+model_path = "D:\\Skripsi\\SSD_VGG_TF_SKRIPSI\\Workspace\\trained_model\\vgg16_Id-32_2023-09-20.h5"
 custom_img_dir = data_utils.get_data_dir('custom_test_imgs')
 img_path = os.path.join(custom_img_dir, os.listdir(custom_img_dir)[0])
 
