@@ -42,7 +42,7 @@ def draw_bboxes(imgs, bboxes):
         plt.imshow(img_with_bb)
         plt.show()
 
-def draw_bboxes_with_labels(img, bboxes, label_indices, probs, labels):
+def draw_bboxes_with_labels(img, bboxes, label_indices, probs, labels, return_img:bool = False):
     """Drawing bounding boxes with labels on given image.
     inputs:
         img : (height, width, channels)
@@ -52,7 +52,10 @@ def draw_bboxes_with_labels(img, bboxes, label_indices, probs, labels):
         probs : (total_bboxes)
         labels : [labels string list]
     """
-    colors = tf.random.uniform((len(labels), 4), maxval=256, dtype=tf.int32)
+    if len(labels) > 2:
+        colors = tf.random.uniform((len(labels), 4), maxval=256, dtype=tf.int32)
+    else:
+        colors = tf.constant([[0, 0, 0, 0], [175, 225, 172, 255]])
     image = tf.keras.preprocessing.image.array_to_img(img)
     draw = ImageDraw.Draw(image)
     for index, bbox in enumerate(bboxes):
@@ -66,10 +69,10 @@ def draw_bboxes_with_labels(img, bboxes, label_indices, probs, labels):
         label_text = "{0} {1:0.3f}".format(labels[label_index], probs[index])
         draw.text((x1 + 1, y1 - 11), label_text, fill=color)
         draw.rectangle((x1, y1, x2, y2), outline=color, width=2)
-    #
-    # im = Image.open(image)
-    # print(tf.keras.utils.img_to_array(image))
-    image.show()
+    if return_img:
+        return image
+    else:
+        image.show()
 
 def draw_predictions(dataset, pred_bboxes, pred_labels, pred_scores, labels, batch_size):
     for batch_id, image_data in enumerate(dataset):
@@ -82,9 +85,11 @@ def draw_predictions(dataset, pred_bboxes, pred_labels, pred_scores, labels, bat
             denormalized_bboxes = bbox_utils.denormalize_bboxes(batch_bboxes[i], img_size, img_size)
             draw_bboxes_with_labels(img, denormalized_bboxes, batch_labels[i], batch_scores[i], labels)
 
-def infer_draw_predictions(imgs, pred_bboxes, pred_labels, pred_scores, labels):
+def infer_draw_predictions(imgs, pred_bboxes, pred_labels, pred_scores, labels, return_img:bool = False):
     img_size = imgs.shape[1]
     # for i, img in enumerate(imgs):
     denormalized_bboxes = bbox_utils.denormalize_bboxes(pred_bboxes, img_size, img_size)
-    print(int(pred_labels[0]))
-    draw_bboxes_with_labels(imgs, denormalized_bboxes, pred_labels, pred_scores, labels)
+    if return_img:
+        return draw_bboxes_with_labels(imgs, denormalized_bboxes, pred_labels, pred_scores, labels, return_img=return_img)
+    else:
+        draw_bboxes_with_labels(imgs, denormalized_bboxes, pred_labels, pred_scores, labels, return_img=return_img)

@@ -15,8 +15,8 @@ batch_size = 4
 epochs = 500
 with_voc_2012 = False
 use_custom_dataset = True
-overwrite_dataset = True
-load_weights = False
+overwrite_dataset = False
+load_weights = True
 args.backbone
 io_utils.is_valid_backbone(args.backbone)
 #
