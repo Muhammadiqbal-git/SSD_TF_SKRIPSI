@@ -21,12 +21,9 @@ model = tf.keras.models.load_model(model_path, compile=False)
 print(type(model))
 
 p_bbox, p_scores, p_labels = model.predict(data)
-data = tf.squeeze(data)
-p_bbox = tf.squeeze(p_bbox)
-p_scores = tf.squeeze(p_scores)
-p_labels = tf.squeeze(p_labels)
 
-print(any(i >= 0.5 for i in p_scores))
+
+print(any(i >= 0.5 for i in tf.squeeze(p_scores)))
 print(p_scores.shape)
 
 

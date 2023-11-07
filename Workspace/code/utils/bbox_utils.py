@@ -32,7 +32,7 @@ def compute_iou(bboxes, gt_boxes, transpose_perm=[0, 2, 1]):
                 (dynamic_dimension, [ymin, xmin, ymax, xmax])
         gt_boxes (tf.tensor): tensor of ground truth boxes
                 (dynamic_dimension, [ymin, xmin, ymax, xmax])
-        transpose_perm (list, optional): transpose perm order for 3d gt_boxes. Defaults to [0, 2, 1].
+        transpose_perm (list, optional): transpose perm order for 3d gt_boxes (gt boxes with batch). Defaults to [0, 2, 1].
 
 
     Returns:

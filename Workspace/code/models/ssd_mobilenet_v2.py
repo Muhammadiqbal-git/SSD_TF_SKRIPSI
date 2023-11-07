@@ -46,11 +46,11 @@ def init_model(model):
     Args:
         model (tf.keras.Model): _description_
     """
-    tes = model(tf.random.uniform((1, 500, 500, 3)))
-    # print(tes[0].shape)
-    # print(tes[1].shape)
-    # print(tes[2].shape)
-    # print(tes[3].shape)
-    # print(tes[4].shape)
-    # print(tes[5].shape)
+    _model = model(tf.random.uniform((1, 500, 500, 3)))
+    # print(_model[0].shape)
+    # print(_model[1].shape)
+    # print(_model[2].shape)
+    # print(_model[3].shape)
+    # print(_model[4].shape)
+    # print(_model[5].shape)
     # a

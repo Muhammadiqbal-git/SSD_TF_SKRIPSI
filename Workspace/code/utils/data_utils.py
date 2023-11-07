@@ -46,6 +46,7 @@ def preview_data(dataset):
         print(image[300, 300, :])
         print("labels = {}".format(data["labels"]))
         print("label = {}".format(data["objects"]["label"]))
+        print("bbox")
         print(data["objects"]["bbox"])
         print("ss")
         bboxs = data["objects"]["bbox"] # [ymin, xmax, ymax, xmax]
@@ -104,9 +105,6 @@ def get_dataset(name, split, data_dir):
     """
     assert split in ["train", "train+validation", "validation", "test"]
     dataset, info = tfds.load(name, split=split, data_dir=data_dir, with_info=True)
-    print("ds info")
-    print(dataset)
-    print(info.features["labels"].names)
     return dataset, info
 
 def get_custom_dataset(split, data_dir, epochs=1):

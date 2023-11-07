@@ -91,11 +91,14 @@ def generator(dataset, anchors, hyper_params):
     while True:
         for image_data in dataset:
             img, gt_boxes, gt_labels = image_data
+            # print(f"gen gt labels {gt_labels.shape}")
+            # print(f"gen gt labels {gt_labels[0, :]}")
+            # print(f"gen gt box {gt_boxes.shape}")
             actual_deltas, actual_labels = calculate_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params)
             yield img, (actual_deltas, actual_labels)
 
 def calculate_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params):
-    """Calculate ssd actual output values.
+    """Calculate actual outputs that same as SSD Model outputs format.
     Batch operations supported.
     inputs:
         anchors : (total_anchors, [ymin, xmin, ymax, xmax])
@@ -109,6 +112,7 @@ def calculate_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params):
         bbox_deltas : (batch_size, total_bboxes, [delta_y, delta_x, delta_h, delta_w])
         bbox_labels : (batch_size, total_bboxes, [0,0,...,0])
     """
+    debug = False
     batch_size = tf.shape(gt_boxes)[0]
     total_labels = hyper_params["total_labels"]
     iou_threshold = hyper_params["iou_threshold"]
@@ -122,6 +126,7 @@ def calculate_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params):
     merged_iou_map = tf.reduce_max(iou_map, axis=2)
     #
     pos_cond = tf.greater(merged_iou_map, iou_threshold)
+    pos = tf.argmax(pos_cond[0, :])
     #
     gt_boxes_map = tf.gather(gt_boxes, max_indices_each_gt_box, batch_dims=1)
     expanded_gt_boxes = tf.where(tf.expand_dims(pos_cond, -1), gt_boxes_map, tf.zeros_like(gt_boxes_map))
@@ -131,4 +136,31 @@ def calculate_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params):
     expanded_gt_labels = tf.where(pos_cond, gt_labels_map, tf.zeros_like(gt_labels_map))
     bbox_labels = tf.one_hot(expanded_gt_labels, total_labels)
     #
+    if debug:
+        print("==========")
+        print(f"anchor => {anchors.shape}")
+        print(f"anchor => {anchors[0, :]}")
+        print(f"gt bx => {gt_boxes.shape}")
+        print(f"gt bx => {gt_boxes[0, :, :]}")
+        print(f"positive cond => {pos_cond.shape}")
+        print(f"positive cond => {tf.argmax(pos_cond[0, :])}")
+        print(f"iou map => {iou_map.shape}")
+        print(f"iou map of idx {pos} => {iou_map[0, pos, :]}")
+        print(f"max indices => {max_indices_each_gt_box.shape}")
+        print(f"max indices of idx {pos} => {max_indices_each_gt_box[0, pos]}")
+        print(f"merged iou map => {merged_iou_map.shape}")
+        print(f"merged iou map of idx {pos} => {merged_iou_map[0, pos]}")
+        print(f"gt bx map => {gt_boxes_map.shape}")
+        print(f"gt bx map of idx {pos} => {gt_boxes_map[0, pos, :]}")
+        print(f"expanded gt bx=> {expanded_gt_boxes.shape}")
+        print(f"expanded gt bx of idx {pos} => {expanded_gt_boxes[0, pos, :]}")
+        print(f"gt label map => {gt_labels_map.shape}")
+        print(f"gt label map of idx {pos} => {gt_labels_map[0, pos]}")
+        print(f"expanded labels => {expanded_gt_labels.shape}")
+        print(f"expanded labels of idx {pos} => {expanded_gt_labels[0, pos]}") 
+        print(f"anchor of idx {pos} => {anchors[pos, :]}")
+        print(f"bbox deltas => {bbox_deltas.shape}")
+        print(f"bbox deltas of idx {pos} => {bbox_deltas[0, pos, :]}")
+        print(f"bbox labels  => {bbox_labels.shape}")
+        print(f"bbox labels of idx {pos} => {bbox_labels[0, pos, :]}")
     return bbox_deltas, bbox_labels

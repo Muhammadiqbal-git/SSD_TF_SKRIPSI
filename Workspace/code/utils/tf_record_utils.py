@@ -9,32 +9,6 @@ from collections import namedtuple
 import tensorflow_datasets as tfds
 import random
 
-# fig, ax = plt.subplots(ncols=1, figsize=(20,20))
-# image_bgr = cv2.cvtColor(decoded_img.numpy(), cv2.COLOR_RGB2BGR)
-# cv2.rectangle(
-#     image_bgr,
-#     (int(10), int(20)),
-#     (int(300), int(100)),
-#     (255, 0, 0),
-#     2
-# )
-# image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-# ax.imshow((image_rgb))
-# plt.show()
-
-
-def _bytes_feature(val):
-    return tf.train.Feature(bytes_list=tf.train.BytesList(value=[val]))
-
-
-def _int64_feature(val):
-    return tf.train.Feature(int64_list=tf.train.Int64List(value=val))
-
-
-def _float_feature(val):
-    return tf.train.Feature(float_list=tf.train.FloatList(value=val))
-
-
 def convert_to_jpeg(img_path):
     """Convert given image file path to a jpeg format
 
