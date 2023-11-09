@@ -10,9 +10,9 @@ if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
 batch_size = 4
-evaluate = False
+evaluate = True
 use_custom_dataset = True
-use_custom_images = True
+use_custom_images = False
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
 
@@ -32,6 +32,8 @@ if use_custom_dataset:
 else:
     test_data, info = data_utils.get_dataset("voc/2007", "test", voc_data_dir)
 print(total_items)
+# data_utils.preview_data(test_data)
+# aa
 labels = data_utils.get_labels(info)
 labels = ["background"] + labels
 hyper_params["total_labels"] = len(labels)
@@ -61,16 +63,31 @@ anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_
 ssd_decoder_model = get_decoder_model(ssd_model, anchors, hyper_params)
 
 step_size = train_utils.get_step_size(total_items, batch_size)
-
+test_data = test_data.take(2)
 pred_bboxes, pred_scores, pred_labels= ssd_decoder_model.predict(test_data, steps=step_size, verbose=1)
-# print(pred_bboxes)
-# print(pred_scores)
-# print(pred_labels)
+print("info")
+for idx, data in enumerate(test_data):
+    data_utils.preview_data_inf(data)
+    img_data, bbox, labelsz = data
+    print(img_data.shape)
+    print(bbox.shape)
+    print(bbox)
+    print(labelsz.shape)
+    print(labelsz)
+print("pred info")
+
+print(pred_bboxes.shape)
+print(pred_bboxes[:8, :5])
+
+print(pred_scores.shape)
+print(pred_scores[:8, :5])
+
+print(pred_labels.shape)
+print(pred_labels[:8, :5])
 x = 0
 for i in pred_scores:
     if (any(j >= 0.5 for j in i)):
         x += 1
-        print(True)
 print(x)
 if evaluate:
     eval_utils.evaluate_predictions(test_data, pred_bboxes, pred_labels, pred_scores, labels, batch_size)

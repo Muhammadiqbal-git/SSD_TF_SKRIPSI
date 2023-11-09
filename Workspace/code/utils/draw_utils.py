@@ -52,10 +52,21 @@ def draw_bboxes_with_labels(img, bboxes, label_indices, probs, labels, return_im
         probs : (total_bboxes)
         labels : [labels string list]
     """
+    print("the batch labels {}".format(label_indices))
+    print("len labels is {}".format(len(labels)))
+    print("len labels is {}".format(labels))
+
     if len(labels) > 2:
+        print(labels)
         colors = tf.random.uniform((len(labels), 4), maxval=256, dtype=tf.int32)
+        print(colors)
+        print(colors.shape)
     else:
         colors = tf.constant([[0, 0, 0, 0], [175, 225, 172, 255]])
+        # colors = tf.tile(colors, [2, 1])
+        print(colors)
+        print(colors.shape)
+
     image = tf.keras.preprocessing.image.array_to_img(img)
     draw = ImageDraw.Draw(image)
     for index, bbox in enumerate(bboxes):

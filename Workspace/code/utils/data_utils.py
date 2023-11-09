@@ -36,7 +36,7 @@ def preprocessing(data, final_height, final_width, augmentation_fn=None, evaluat
     return img, gt_boxes, gt_labels
 
 def preview_data(dataset):
-    n_data = 5
+    n_data = 4
     fig, ax = plt.subplots(ncols=n_data, figsize=(20,20))
     for idx, data in enumerate(dataset.take(n_data)):
         print("image of ", idx+1)
@@ -68,6 +68,38 @@ def preview_data(dataset):
             )
         image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
         ax[idx].imshow((image_rgb))
+        # ax.imshow((image.numpy()))
+    plt.show()
+
+def preview_data_inf(dataset):
+    fig, ax = plt.subplots(ncols=4, figsize=(20,20))
+    img, bboxs, labels = dataset
+    for batch_idx in range(img.shape[0]):
+        # print("image of ", batch_idx+1)
+        # print(img[batch_idx, ...].shape)
+        image = tf.image.convert_image_dtype(img[batch_idx, :, :], tf.float32)
+        # print("labels = {}".format(labels))
+        # print("bboxs")
+        # print(bboxs)
+        # print("ss")
+        height = img[batch_idx, ...].shape[0]
+        width = img[batch_idx, ...].shape[1]
+        image_bgr = cv2.cvtColor(image.numpy(), cv2.COLOR_RGB2BGR)
+        for bbox in bboxs[batch_idx, ...]:
+            ymin = bbox[0]*height
+            xmin = bbox[1]*width
+            ymax = bbox[2]*height
+            xmax = bbox[3]*width
+
+            cv2.rectangle(
+                image_bgr,
+                (int(xmin), int(ymin)),
+                (int(xmax), int(ymax)),
+                (255, 0, 0),
+                2
+            )
+        image_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+        ax[batch_idx].imshow((image_rgb))
         # ax.imshow((image.numpy()))
     plt.show()
 
@@ -121,7 +153,7 @@ def get_custom_dataset(split, data_dir, epochs=1):
     assert split in ["train", "train+validation", "validation", "test"], "split must be in format with one of these"
     dataset_builder= tfds.builder_from_directory(builder_dir=data_dir)
     dataset = dataset_builder.as_dataset(split=split)
-    dataset = dataset.repeat(epochs)
+    dataset = dataset.repeat(1)
     info = dataset_builder.info
     print("ds info")
     print(dataset)

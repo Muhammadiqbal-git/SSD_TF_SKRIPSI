@@ -17,6 +17,12 @@ def init_stats(labels):
     return stats
 
 def update_stats(pred_bboxes, pred_labels, pred_scores, gt_boxes, gt_labels, stats):
+    print("pred bbox shape {}".format(pred_bboxes.shape))
+    print("gt bbox shape {}".format(gt_boxes.shape))
+
+    print("gt labels shape {}".format(gt_labels.shape))
+    print("pred labels shape {}".format(pred_labels.shape))
+
     iou_map = bbox_utils.compute_iou(pred_bboxes, gt_boxes)
     merged_iou_map = tf.reduce_max(iou_map, axis=-1)
     max_indices_each_gt = tf.argmax(iou_map, axis=-1, output_type=tf.int32)
@@ -93,6 +99,8 @@ def evaluate_predictions(dataset, pred_bboxes, pred_labels, pred_scores, labels,
         batch_bboxes, batch_labels, batch_scores = pred_bboxes[start:end], pred_labels[start:end], pred_scores[start:end]
         stats = update_stats(batch_bboxes, batch_labels, batch_scores, gt_boxes, gt_labels, stats)
         _, mAP_batch = calculate_mAP(stats)
+        print(_)
+
         print("{} - mAP: {}".format(batch_id, float(mAP_batch)))
 
     stats, mAP = calculate_mAP(stats)
