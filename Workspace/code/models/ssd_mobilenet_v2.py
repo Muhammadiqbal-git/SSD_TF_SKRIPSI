@@ -47,6 +47,7 @@ def init_model(model):
         model (tf.keras.Model): _description_
     """
     _model = model(tf.random.uniform((1, 500, 500, 3)))
+    # print(_model.summary())
     # print(_model[0].shape)
     # print(_model[1].shape)
     # print(_model[2].shape)

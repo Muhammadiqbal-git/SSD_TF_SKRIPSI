@@ -12,11 +12,11 @@ if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
 batch_size = 4
-epochs = 500
+epochs = 20
 with_voc_2012 = False
 use_custom_dataset = True
 overwrite_dataset = True
-load_weights = False
+load_weights = True
 args.backbone
 io_utils.is_valid_backbone(args.backbone)
 #
@@ -38,7 +38,6 @@ if use_custom_dataset:
 else:
     train_data, info = data_utils.get_dataset("voc/2007", "train", voc_data_dir)
     val_data, _ = data_utils.get_dataset("voc/2007", "validation", voc_data_dir)
-
 print(train_total_items)
 # data_utils.preview_data(train_data)
 # aa
@@ -73,10 +72,13 @@ train_data = train_data.shuffle(batch_size*4).padded_batch(batch_size, padded_sh
 val_data = val_data.padded_batch(batch_size, padded_shapes=data_shapes, padding_values=padding_values)
 #
 ssd_model = get_model(hyper_params)
+# ssd_model.summary()
 ssd_custom_losses = SSDLoss(hyper_params["neg_pos_ratio"], hyper_params["loc_loss_alpha"])
 ssd_model.compile(optimizer=Adam(learning_rate=1e-3),
                   loss=[ssd_custom_losses.loc_loss_fn, ssd_custom_losses.conf_loss_fn])
 init_model(ssd_model)
+# aa
+
 ssd_model_path = io_utils.get_model_path(args.backbone)
 if load_weights:
     train_utils.loaded_weight = load_weights

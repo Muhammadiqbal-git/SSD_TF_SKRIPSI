@@ -41,59 +41,28 @@ def compute_iou(bboxes, gt_boxes, transpose_perm=[0, 2, 1]):
     """
     gt_rank = tf.rank(gt_boxes)
     gt_expand_axis = gt_rank - 2
-
     bbox_ymin, bbox_xmin, bbox_ymax, bbox_xmax = tf.split(bboxes, 4, axis=-1)
     gt_ymin, gt_xmin, gt_ymax, gt_xmax = tf.split(gt_boxes, 4, axis=-1)
-    print("bbox_ymin {}".format(bbox_ymin.shape))
-    print("bbox_ymin {}".format(bbox_ymin[:, :5]))
-    print("gt_ymin {}".format(gt_ymin.shape))
-    print("gt_ymin {}".format(gt_ymin))
-    tes = tf.transpose(gt_ymin, transpose_perm)
-    print("tes gt {}".format(tes.shape))
-    print("tes gt {}".format(tes))
-
-    tes_area = (gt_ymax - gt_ymin) * (gt_xmax - gt_xmin)
     gt_area = tf.squeeze((gt_ymax - gt_ymin) * (gt_xmax - gt_xmin), axis=-1)
     bbox_area = tf.squeeze((bbox_ymax - bbox_ymin) * (bbox_xmax - bbox_xmin), axis=-1)
-    print("gt_area {}".format(gt_area.shape))
-    print("gt_area {}".format(gt_area))
-    
-    print("bbx_area {}".format(bbox_area.shape))
-    print("bbx_area {}".format(bbox_area))
-
     x_min = tf.maximum(bbox_xmin, tf.transpose(gt_xmin, transpose_perm))
     y_min = tf.maximum(bbox_ymin, tf.transpose(gt_ymin, transpose_perm))
     x_max = tf.minimum(bbox_xmax, tf.transpose(gt_xmax, transpose_perm))
     y_max = tf.minimum(bbox_ymax, tf.transpose(gt_ymax, transpose_perm))
-    print("xmin {}".format(x_min.shape))
-    print("xmin {}".format(x_min[0, :5]))
-    print("xmax {}".format(x_max.shape))
-    print("xmax {}".format(x_max[0, :5]))
-    print("asd {}".format((x_max - x_min)[0, :5]))
-    print("ymin {}".format(y_min.shape))
-    print("ymin {}".format(y_min[0, :5]))
-    print("ymax {}".format(y_max.shape))
-    print("ymax {}".format(y_max[0, :5]))
-    print("asd {}".format((y_max - y_min)[0, :5]))
     i_area = tf.maximum(x_max - x_min, 0) * tf.maximum(y_max - y_min, 0)
-    print("i rea {}".format(i_area.shape))
-    print("i rea {}".format(i_area))
-    
     bbox_area = tf.expand_dims(bbox_area, -1)
-    print("bbx_area {}".format(bbox_area.shape))
-    print("bbx_area {}".format(bbox_area))
+    # print(x_min[0, 0])
+    # print(y_min[0, 0])
+    # print(x_max[0, 0])
+    # print(y_max[0, 0])
+
+    # print(i_area[0])
+    # print(bbox_area[0])
+    # print(gt_area[0])
     gt_area = tf.expand_dims(gt_area, gt_expand_axis)
     u_area = (
         bbox_area + gt_area - i_area
     )
-    print("u_area {}".format(u_area.shape))
-    print("u_area {}".format(u_area))
-    print("iou {}".format((i_area/u_area).shape))
-    print("iou {}".format(i_area/u_area))
-
-
-
-
     return i_area / u_area
 
 

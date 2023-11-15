@@ -42,7 +42,6 @@ def get_head_from_outputs(hyper_params, outputs):
     len_aspect_ratio = [len(x) + 1 for x in hyper_params["aspect_ratios"]]
     labels_head = []
     bboxes_head = []
-
     for i, output in enumerate(outputs):
         ar = len_aspect_ratio[i]
         labels_head.append(Conv2D(ar * total_labels, (3, 3), padding="same", name="conv_labels_{}".format(i+1))(output))
@@ -50,5 +49,4 @@ def get_head_from_outputs(hyper_params, outputs):
     pred_labels = PredictionHead(total_labels, name="labels_head")(labels_head)
     pred_labels = Activation("softmax", name="conf")(pred_labels)
     pred_deltas = PredictionHead(4, name="loc")(bboxes_head)
-
     return pred_deltas, pred_labels

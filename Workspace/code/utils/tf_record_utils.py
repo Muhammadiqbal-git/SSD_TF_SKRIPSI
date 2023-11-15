@@ -54,7 +54,7 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
     """
 
     assert (
-        split_number[0] + split_number[1] <= 1.0
+        split_number[0] + split_number[1] <= 100
     ), "Split sum value must be below than 1.0"
     print(split_number[0] + split_number[1])
     data_list = []
@@ -119,11 +119,13 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
                 bbox=bbox,
             )
         )
-    random.seed(31)
+    random.seed(42)
     random.shuffle(data_list)
     categories = dict(sorted(categories.items(), key=lambda x:x[1]))
-    split_train = int(len(data_list) * split_number[0])
-    split_val = int(len(data_list) * split_number[1]) + split_train
+    split_train = int(len(data_list) * split_number[0] / 100)
+    split_val = int(len(data_list) * split_number[1] / 100) + split_train
+
+
     # aa
     data_train, data_val, data_test = (
         data_list[:split_train],
@@ -210,7 +212,7 @@ def write_tf_record(dir, overwrite, img_size: tuple):
         convert_to_jpeg(img_path=img_path)
 
     data_train, data_val, data_test, categories = get_custom_data(
-        img_dir=custom_img_dir, resize=img_size, split_number=(0.7, 0.2)
+        img_dir=custom_img_dir, resize=img_size, split_number=(70, 20)
     )
     print(categories)
     features, split_info = create_tfds_feature(

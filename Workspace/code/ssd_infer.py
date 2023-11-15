@@ -3,16 +3,12 @@ import tensorflow as tf
 from utils import bbox_utils, data_utils, draw_utils, io_utils, train_utils, eval_utils
 from models.decoder import get_decoder_model
 import numpy as np
+import random
 
 
 args = io_utils.handle_args()
 if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
-
-batch_size = 4
-evaluate = True
-use_custom_dataset = True
-use_custom_images = False
 backbone = args.backbone
 io_utils.is_valid_backbone(backbone)
 
@@ -21,6 +17,10 @@ if backbone == "mobilenet_v2":
 else:
     from models.ssd_vgg16_architecture import get_model, init_model
 
+batch_size = 4
+evaluate = True
+use_custom_dataset = True
+use_custom_images = False
 hyper_params = train_utils.get_hyper_params(backbone)
 
 custom_data_dir = data_utils.get_data_dir("custom_dataset")
@@ -34,6 +34,7 @@ else:
 print(total_items)
 # data_utils.preview_data(test_data)
 # aa
+# test_data = test_data.shuffle(4) # uncoment 
 labels = data_utils.get_labels(info)
 labels = ["background"] + labels
 hyper_params["total_labels"] = len(labels)
@@ -63,11 +64,12 @@ anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_
 ssd_decoder_model = get_decoder_model(ssd_model, anchors, hyper_params)
 
 step_size = train_utils.get_step_size(total_items, batch_size)
-test_data = test_data.take(2)
+# test_data = test_data.take(1)
+
 pred_bboxes, pred_scores, pred_labels= ssd_decoder_model.predict(test_data, steps=step_size, verbose=1)
 print("info")
 for idx, data in enumerate(test_data):
-    data_utils.preview_data_inf(data)
+    # data_utils.preview_data_inf(data)
     img_data, bbox, labelsz = data
     print(img_data.shape)
     print(bbox.shape)
@@ -77,13 +79,13 @@ for idx, data in enumerate(test_data):
 print("pred info")
 
 print(pred_bboxes.shape)
-print(pred_bboxes[:8, :5])
+print(pred_bboxes[:4, :5])
 
 print(pred_scores.shape)
-print(pred_scores[:8, :5])
+print(pred_scores[:4, :5])
 
 print(pred_labels.shape)
-print(pred_labels[:8, :5])
+print(pred_labels[:4, :5])
 x = 0
 for i in pred_scores:
     if (any(j >= 0.5 for j in i)):
