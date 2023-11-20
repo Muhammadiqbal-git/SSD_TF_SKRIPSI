@@ -119,6 +119,9 @@ def get_custom_data(img_dir, resize: tuple, split_number: tuple = (0.6, 0.2)):
                 bbox=bbox,
             )
         )
+        # print(data_list)
+        # print(categories)
+        # aa
     random.seed(42)
     random.shuffle(data_list)
     categories = dict(sorted(categories.items(), key=lambda x:x[1]))

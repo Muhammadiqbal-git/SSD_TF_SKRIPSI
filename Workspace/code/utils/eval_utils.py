@@ -6,74 +6,73 @@ def init_stats(labels):
     stats = {}
     for i, label in enumerate(labels):
         if i == 0:
-            continue
-        stats[i] = {
-            "label": label,
-            "total": 0,
-            "tp": [],
-            "fp": [],
-            "scores": [],
-        }
+            stats[i] = {
+                "fn": []
+            }
+        else:
+            stats[i] = {
+                "label": label,
+                "total": 0,
+                "tp": [],
+                "fp": [],
+                "fn": 0,
+                "scores": [],
+            }
     return stats
 
 def update_stats(pred_bboxes, pred_labels, pred_scores, gt_boxes, gt_labels, stats):
     # print("pred bbox shape {}".format(pred_bboxes.shape))
     # print("gt bbox shape {}".format(gt_boxes.shape))
-
     # print("gt labels shape {}".format(gt_labels.shape))
     # print("pred labels shape {}".format(pred_labels.shape))
     # print("pred scores shape {}".format(pred_scores.shape))
-
-
     iou_map = bbox_utils.compute_iou(pred_bboxes, gt_boxes)
-    
     merged_iou_map = tf.reduce_max(iou_map, axis=-1)
-
     max_indices_each_gt = tf.argmax(iou_map, axis=-1, output_type=tf.int32)
     # print("iou {}".format(iou_map[:, :5]))
     # print("merged iou {}".format(merged_iou_map.shape))
     # print("merged iou {}".format(merged_iou_map[:, :5]))
     # print("indices gt {}".format(max_indices_each_gt.shape))
-    # print("indices gt {}".format(max_indices_each_gt[:, :5]))
-
+    # print("indices gt {}".format(max_indices_each_gt[:, :10]))
     # sort base from most intersect bbox
     sorted_idxs = tf.argsort(merged_iou_map, direction="DESCENDING")
     test = tf.greater(merged_iou_map, 0.5)
     # print("test {}".format(test[:, :5]))
-
     scores_s = tf.where(tf.greater(merged_iou_map, 0), pred_scores, tf.zeros_like(pred_scores))
     sorted_idx_score = tf.argsort(scores_s, direction="DESCENDING")
     # print("sorted iou {}".format(sorted_idxs.shape))
     # print("sorted iou {}".format(sorted_idxs[:, :5]))
     # print("scores {}".format(scores_s[:, :5]))
+    # print("scores {}".format(sorted_idx_score.shape))
     # print("scores {}".format(sorted_idx_score[:, :5]))
-
-
     # print("gt labels {}".format(gt_labels))
     # print("gt labels {}".format(tf.reshape(gt_labels, (-1,))))
-
-
     #
     count_holder = tf.unique_with_counts(tf.reshape(gt_labels, (-1,)))
-    # print(count_holder)
+
+    count_pred_holder = tf.unique_with_counts(tf.reshape(pred_labels, (-1)))
+    total_gtbox_batch = 0
+    total_predbox_batch = 0
     for i, gt_label in enumerate(count_holder[0]):
         if gt_label == -1:
             continue
         gt_label = int(gt_label)
         stats[gt_label]["total"] += int(count_holder[2][i])
-        print("total gt {}".format(stats[gt_label]["total"]))
-    #asdasdasd asdasdasd
+        stats[gt_label]["fn"] += count_holder[2][i]
+        total_gtbox_batch += count_holder[2][i]
     for batch_idx, m in enumerate(merged_iou_map):
         true_labels = []
+        # pred_bboxes_number = tf.where(gt_labels, pred_bboxes, tf.zeros_like)
         for i, sorted_idx in enumerate(sorted_idx_score[batch_idx]):
             pred_label = pred_labels[batch_idx, sorted_idx]
             if pred_label == 0:
                 continue
             #
             iou = merged_iou_map[batch_idx, sorted_idx]
+            pred_label = int(pred_label)
             gt_idx = max_indices_each_gt[batch_idx, sorted_idx]
             gt_label = int(gt_labels[batch_idx, gt_idx])
-            pred_label = int(pred_label)
+
             score = pred_scores[batch_idx, sorted_idx]
             # print(score)
             stats[pred_label]["scores"].append(score)
@@ -83,9 +82,10 @@ def update_stats(pred_bboxes, pred_labels, pred_scores, gt_boxes, gt_labels, sta
             if iou >= 0.5 and pred_label == gt_label and gt_idx not in true_labels:
                 stats[pred_label]["tp"][-1] = 1
                 true_labels.append(gt_idx)
+                stats[pred_label]["fn"] -= 1
             else:
-                print("do this execute?")
                 stats[pred_label]["fp"][-1] = 1
+            stats[pred_label]["tp"]
             #
         #
     #
@@ -93,33 +93,21 @@ def update_stats(pred_bboxes, pred_labels, pred_scores, gt_boxes, gt_labels, sta
 
 def calculate_ap(recall, precision):
     ap = 0
-    # for r in np.arange(0, 1.1, 0.1):
-    #     prec_rec = precision[recall >= r]
-    #     # print("prec_rec {}".format(prec_rec))
-    #     if len(prec_rec) > 0:
-    #         ap += np.average(prec_rec)
-    # # By definition AP = sum(max(precision whose recall is above r))/11
-    # ap /= 11
     pre_r = 0.0
-
     for p in range(len(precision)-1, 0, -1):
         precision[p-1] = np.maximum(precision[p], precision[p-1])
-    # print("prec {}".format(precision))
     for idx, r in enumerate(recall):
-        # if pre
         if pre_r != r:
             ap += precision[idx] * (r-pre_r)
-            # print("prec i {}".format(precision[idx]))
             pre_r = r
-
     return ap
 
 def calculate_mAP(stats):
     aps = []
     for label in stats:
+        if label == 0:
+            continue
         label_stats = stats[label]
-        # print("label s {}".format(label_stats))
-
         tp = np.array(label_stats["tp"])
         fp = np.array(label_stats["fp"])
         scores = np.array(label_stats["scores"])
@@ -129,24 +117,20 @@ def calculate_mAP(stats):
         accumulated_fp = np.cumsum(fp[ids])
         recall = accumulated_tp / total
         precision = accumulated_tp / (accumulated_fp + accumulated_tp)
-        print("tplen {}".format(len(tp)))
-        print("tp {}".format(np.sum(tp)))
-
-        print("fplen {}".format(len(fp)))
-        print("fp {}".format(np.sum(fp)))
-
+        # print("tplen {}".format(len(tp)))
+        # print("tp {}".format(np.sum(tp)))
+        # print("fn {}".format(label_stats["fn"]))
+        # print("fplen {}".format(len(fp)))
+        # print("fp {}".format(np.sum(fp)))
         # print("scores {}".format(scores[ids]))
-        # print("tp ids {}".format(tp[ids]))
         # print("tp {}".format(accumulated_tp))
-        print("precision {}".format(len(precision)))
+        # print("fp {}".format(accumulated_fp))
         ap = calculate_ap(recall, precision)
         stats[label]["recall"] = recall
         stats[label]["precision"] = precision
         stats[label]["AP"] = ap
-        print("precision {}".format(stats[label]["precision"]))
-        print("RECALL {}".format(stats[label]["recall"]))
-
-
+        # print("precision {}".format(stats[label]["precision"]))
+        # print("RECALL {}".format(stats[label]["recall"]))
         aps.append(ap)
     mAP = np.mean(aps)
     return stats, mAP
@@ -159,8 +143,6 @@ def evaluate_predictions(dataset, pred_bboxes, pred_labels, pred_scores, labels,
         end = start + batch_size
         batch_bboxes, batch_labels, batch_scores = pred_bboxes[start:end], pred_labels[start:end], pred_scores[start:end]
         stats = update_stats(batch_bboxes, batch_labels, batch_scores, gt_boxes, gt_labels, stats)
-        # _, mAP_batch = calculate_mAP(stats)
-        # print("{} - mAP: {}".format(batch_idx, float(mAP_batch)))
 
     stats, mAP = calculate_mAP(stats)
     print("mAP: {}".format(float(mAP)))

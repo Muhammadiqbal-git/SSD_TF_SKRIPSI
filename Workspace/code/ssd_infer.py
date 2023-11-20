@@ -17,24 +17,22 @@ if backbone == "mobilenet_v2":
 else:
     from models.ssd_vgg16_architecture import get_model, init_model
 
-batch_size = 4
-evaluate = True
+BATCH_SIZE = 4
+EVAL_mAP = True
+PENGUJIAN = True
 use_custom_dataset = True
-use_custom_images = False
+use_custom_images = True
 hyper_params = train_utils.get_hyper_params(backbone)
 
 custom_data_dir = data_utils.get_data_dir("custom_dataset")
 custom_img_dir = data_utils.get_data_dir("inference")
-voc_data_dir = data_utils.get_data_dir("voc")
-
-if use_custom_dataset:
-    test_data, info, total_items = data_utils.get_custom_dataset("test", custom_data_dir)
-else:
-    test_data, info = data_utils.get_dataset("voc/2007", "test", voc_data_dir)
-print(total_items)
-# data_utils.preview_data(test_data)
-# aa
-# test_data = test_data.shuffle(4) # uncoment 
+pengujian_dir = []
+for list_name in os.listdir(custom_img_dir):
+    if list_name.endswith(".jpeg"):
+        continue
+    pengujian_dir.append(os.path.join(custom_img_dir, list_name))
+#test data dari pembuatan tf_record dataset (random dari distribusi yang sama)
+test_data, info, total_items = data_utils.get_custom_dataset("test", custom_data_dir)
 labels = data_utils.get_labels(info)
 labels = ["background"] + labels
 hyper_params["total_labels"] = len(labels)
@@ -44,18 +42,6 @@ data_types = data_utils.get_data_types()
 data_shapes = data_utils.get_data_shapes()
 padding_values = data_utils.get_padding_values()
 
-if use_custom_images:
-    img_paths = data_utils.get_custom_imgs(custom_img_dir)
-    total_items = len(img_paths)
-    test_data = tf.data.Dataset.from_generator(lambda: data_utils.custom_data_generator(
-                                               img_paths, img_size[1], img_size[0]), data_types, data_shapes)
-elif use_custom_dataset:
-    test_data = test_data.map(lambda x : data_utils.preprocessing(x, img_size[1], img_size[0]))
-else:
-    test_data = test_data.map(lambda x : data_utils.preprocessing(x, img_size[1], img_size[0], evaluate=evaluate))
-
-test_data = test_data.padded_batch(batch_size, padded_shapes=data_shapes, padding_values=padding_values)
-# test_data = test_data.take(1).take(1)
 ssd_model = get_model(hyper_params)
 ssd_model_path = io_utils.get_model_path(backbone)
 ssd_model.load_weights(ssd_model_path)
@@ -63,35 +49,41 @@ ssd_model.load_weights(ssd_model_path)
 anchors = bbox_utils.generate_anchors(hyper_params["feature_map_shapes"], hyper_params["aspect_ratios"])
 ssd_decoder_model = get_decoder_model(ssd_model, anchors, hyper_params)
 
-step_size = train_utils.get_step_size(total_items, batch_size)
-# test_data = test_data.take(1)
 
-pred_bboxes, pred_scores, pred_labels= ssd_decoder_model.predict(test_data, steps=step_size, verbose=1)
-print("info")
-for idx, data in enumerate(test_data):
-    # data_utils.preview_data_inf(data)
-    img_data, bbox, labelsz = data
-    print(img_data.shape)
-    print(bbox.shape)
-    print(bbox)
-    print(labelsz.shape)
-    print(labelsz)
-print("pred info")
-
-print(pred_bboxes.shape)
-print(pred_bboxes[:4, :5])
-
-print(pred_scores.shape)
-print(pred_scores[:4, :5])
-
-print(pred_labels.shape)
-print(pred_labels[:4, :5])
-x = 0
-for i in pred_scores:
-    if (any(j >= 0.5 for j in i)):
-        x += 1
-print(x)
-if evaluate:
-    eval_utils.evaluate_predictions(test_data, pred_bboxes, pred_labels, pred_scores, labels, batch_size)
+if use_custom_images:
+    for pengujian in pengujian_dir :
+        img_paths = data_utils.get_custom_imgs(pengujian, pengujian=PENGUJIAN)
+        total_items = len(img_paths)
+        step_size = train_utils.get_step_size(total_items, BATCH_SIZE)
+        print(pengujian)
+        print("total data uji {}".format(total_items))
+        test_data = tf.data.Dataset.from_generator(lambda: data_utils.custom_data_generator(
+                                                img_paths, img_size[1], img_size[0], labels, PENGUJIAN), data_types, data_shapes)
+        test_data = test_data.padded_batch(BATCH_SIZE, padded_shapes=data_shapes, padding_values=padding_values)
+        # print("info")
+        # for idx, data in enumerate(test_data):
+        #     data_utils.preview_data_inf(data)
+        #     img_data, bbox, labelsz = data
+        #     print(img_data.shape)
+        #     print(bbox.shape)
+        #     print(bbox)
+        #     print(labelsz.shape)
+        #     print(labelsz)
+        # print("pred info")
+        # a
+        pred_bboxes, pred_scores, pred_labels = ssd_decoder_model.predict(test_data, steps=step_size, verbose=1)
+        if EVAL_mAP:
+            eval_utils.evaluate_predictions(test_data, pred_bboxes, pred_labels, pred_scores, labels, BATCH_SIZE)
+        else:
+            draw_utils.draw_predictions(test_data, pred_bboxes, pred_labels, pred_scores, labels, BATCH_SIZE)
 else:
-    draw_utils.draw_predictions(test_data, pred_bboxes, pred_labels, pred_scores, labels, batch_size)
+    print("total data {}".format(total_items))
+    test_data = test_data.map(lambda x : data_utils.preprocessing(x, img_size[1], img_size[0]))
+    test_data = test_data.padded_batch(BATCH_SIZE, padded_shapes=data_shapes, padding_values=padding_values)
+    step_size = train_utils.get_step_size(total_items, BATCH_SIZE)
+    pred_bboxes, pred_scores, pred_labels = ssd_decoder_model.predict(test_data, steps=step_size, verbose=1)
+    if EVAL_mAP:
+        eval_utils.evaluate_predictions(test_data, pred_bboxes, pred_labels, pred_scores, labels, BATCH_SIZE)
+    else:
+        draw_utils.draw_predictions(test_data, pred_bboxes, pred_labels, pred_scores, labels, BATCH_SIZE)
+

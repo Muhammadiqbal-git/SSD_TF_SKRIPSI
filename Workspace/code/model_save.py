@@ -38,7 +38,7 @@ ssd_decoder_model = get_decoder_model(ssd_model, anchor, hyper_params)
 time_now = time.strftime("%H_%Y-%m-%d")
 model_dir = data_utils.get_data_dir('trained_model')
 
-saved_loc = os.path.join(model_dir, "{}_{}_Id-{}.h5".format(time_now, args.backbone, random.randint(11, 99)))
+saved_loc = os.path.join(model_dir, "{}_{}_ID-{}.h5".format(time_now, args.backbone, random.randint(11, 99)))
 
 # draw_utils.infer_draw_predictions(data, pred_bboxes, pred_labels, pred_scores, labels)
 ssd_decoder_model.save(saved_loc, save_format="h5")

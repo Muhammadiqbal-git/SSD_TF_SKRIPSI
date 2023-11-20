@@ -11,8 +11,8 @@ args = io_utils.handle_args()
 if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
-batch_size = 4
-epochs = 20
+BATCH_SIZE = 4
+EPOCHS = 1000
 with_voc_2012 = False
 use_custom_dataset = True
 overwrite_dataset = True
@@ -32,9 +32,8 @@ voc_data_dir = data_utils.get_data_dir("voc")
 
 if use_custom_dataset:
     tf_record_utils.write_tf_record(custom_data_dir, overwrite=overwrite_dataset, img_size=(500, 500))
-    train_data, info, train_total_items = data_utils.get_custom_dataset("train", custom_data_dir, epochs)
-    val_data, _, val_total_items = data_utils.get_custom_dataset("validation", custom_data_dir, epochs)
-    test_data, _, _ = data_utils.get_custom_dataset("test", custom_data_dir)
+    train_data, info, train_total_items = data_utils.get_custom_dataset("train", custom_data_dir, EPOCHS)
+    val_data, _, val_total_items = data_utils.get_custom_dataset("validation", custom_data_dir, EPOCHS)
 else:
     train_data, info = data_utils.get_dataset("voc/2007", "train", voc_data_dir)
     val_data, _ = data_utils.get_dataset("voc/2007", "validation", voc_data_dir)
@@ -68,8 +67,8 @@ val_data = val_data.map(lambda x : data_utils.preprocessing(x, img_size[1], img_
 
 data_shapes = data_utils.get_data_shapes()
 padding_values = data_utils.get_padding_values()
-train_data = train_data.shuffle(batch_size*4).padded_batch(batch_size, padded_shapes=data_shapes, padding_values=padding_values)
-val_data = val_data.padded_batch(batch_size, padded_shapes=data_shapes, padding_values=padding_values)
+train_data = train_data.shuffle(BATCH_SIZE*4).padded_batch(BATCH_SIZE, padded_shapes=data_shapes, padding_values=padding_values)
+val_data = val_data.padded_batch(BATCH_SIZE, padded_shapes=data_shapes, padding_values=padding_values)
 #
 ssd_model = get_model(hyper_params)
 # ssd_model.summary()
@@ -93,11 +92,11 @@ checkpoint_callback = ModelCheckpoint(ssd_model_path, monitor="val_loss", save_b
 tensorboard_callback = TensorBoard(log_dir=ssd_log_path)
 learning_rate_callback = LearningRateScheduler(train_utils.scheduler, verbose=0)
 
-step_size_train = train_utils.get_step_size(train_total_items, batch_size)
-step_size_val = train_utils.get_step_size(val_total_items, batch_size)
+step_size_train = train_utils.get_step_size(train_total_items, BATCH_SIZE)
+step_size_val = train_utils.get_step_size(val_total_items, BATCH_SIZE)
 ssd_model.fit(ssd_train_feed,
               steps_per_epoch=step_size_train,
               validation_data=ssd_val_feed,
               validation_steps=step_size_val,
-              epochs=epochs,
+              EPOCHS=EPOCHS,
               callbacks=[checkpoint_callback, tensorboard_callback, learning_rate_callback])
