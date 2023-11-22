@@ -12,10 +12,10 @@ if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
 BATCH_SIZE = 4
-EPOCHS = 1000
+EPOCHS = 50
 with_voc_2012 = False
 use_custom_dataset = True
-overwrite_dataset = True
+overwrite_dataset = False
 load_weights = True
 args.backbone
 io_utils.is_valid_backbone(args.backbone)
@@ -98,5 +98,5 @@ ssd_model.fit(ssd_train_feed,
               steps_per_epoch=step_size_train,
               validation_data=ssd_val_feed,
               validation_steps=step_size_val,
-              EPOCHS=EPOCHS,
+              epochs=EPOCHS,
               callbacks=[checkpoint_callback, tensorboard_callback, learning_rate_callback])

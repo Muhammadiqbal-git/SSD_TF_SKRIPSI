@@ -117,7 +117,7 @@ def calculate_actual_outputs(anchors, gt_boxes, gt_labels, hyper_params):
     total_labels = hyper_params["total_labels"]
     iou_threshold = hyper_params["iou_threshold"]
     variances = hyper_params["variances"]
-    total_anchors = anchors.shape[0]
+    # total_anchors = anchors.shape[0]
     # Calculate iou values between each bboxes and ground truth boxes
     iou_map = bbox_utils.compute_iou(anchors, gt_boxes)
     # Get max index value for each row

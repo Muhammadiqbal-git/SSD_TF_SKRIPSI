@@ -2,6 +2,7 @@ import tensorflow as tf
 from PIL import Image, ImageDraw
 import matplotlib.pyplot as plt
 from utils import bbox_utils
+from os.path import join
 
 def draw_grid_map(img, grid_map, stride):
     """Drawing grid intersection on given image.
@@ -42,6 +43,64 @@ def draw_bboxes(imgs, bboxes):
         plt.imshow(img_with_bb)
         plt.show()
 
+def save_gtbox(img, bboxes, label, labels, file_name, return_img:bool = True):
+    dict_label = {}
+    for idnx, l in enumerate(labels):
+        dict_label[idnx] = l 
+    if len(labels) > 2:
+        colors = tf.random.uniform((len(labels), 4), maxval=256, dtype=tf.int32)
+    else:
+        colors = tf.constant([[0, 0, 0, 0], [175, 225, 172, 255]])
+    image = tf.keras.preprocessing.image.array_to_img(img)
+    draw = ImageDraw.Draw(image)
+    for index, bbox in enumerate(bboxes):
+        bbox = tf.multiply(bbox, 500)
+        y1, x1, y2, x2 = tf.split(bbox, 4)
+        width = x2 - x1
+        height = y2 - y1
+        if width <= 0 or height <= 0:
+            continue
+        color = tuple(colors[label.numpy()[index]].numpy())
+        label_text = "{}".format(dict_label[label.numpy()[index]])
+        draw.text((x1 + 1, y1 - 11), label_text, fill=color)
+        draw.rectangle((x1, y1, x2, y2), outline=color, width=2)
+    if return_img:
+        return image.save(file_name)
+    else:
+        image.show()
+
+def save_pred_bbox(idx, img, bboxes, label_indices, probs, labels, f_dir):
+    """Drawing bounding boxes with labels on given image.
+    inputs:
+        img : (height, width, channels)
+        bboxes : (total_bboxes, [y1, x1, y2, x2])
+            in denormalized form
+        label_indices : (total_bboxes)
+        probs : (total_bboxes)
+        labels : [labels string list]
+    """
+    if len(labels) > 2:
+        colors = tf.random.uniform((len(labels), 4), maxval=256, dtype=tf.int32)
+    else:
+        colors = tf.constant([[0, 0, 0, 0], [175, 225, 172, 255]])
+    f_name = join(f_dir, "{}_pred-bbox.jpeg".format(idx))
+    image = tf.keras.preprocessing.image.array_to_img(img)
+    draw = ImageDraw.Draw(image)
+    for index, bbox in enumerate(bboxes):
+        y1, x1, y2, x2 = tf.split(bbox, 4)
+        width = x2 - x1
+        height = y2 - y1
+        if width <= 0 or height <= 0:
+            continue
+        label_index = int(label_indices[index])
+        color = tuple(colors[label_index].numpy())
+        label_text = "{0} {1:0.3f}".format(labels[label_index], probs[index])
+        draw.text((x1 + 1, y1 - 11), label_text, fill=color)
+        draw.rectangle((x1, y1, x2, y2), outline=color, width=2)
+    idx = idx+1
+    return image.save(f_name)
+
+
 def draw_bboxes_with_labels(img, bboxes, label_indices, probs, labels, return_img:bool = False):
     """Drawing bounding boxes with labels on given image.
     inputs:
@@ -75,7 +134,10 @@ def draw_bboxes_with_labels(img, bboxes, label_indices, probs, labels, return_im
     else:
         image.show()
 
-def draw_predictions(dataset, pred_bboxes, pred_labels, pred_scores, labels, batch_size):
+
+
+def draw_predictions(dataset, pred_bboxes, pred_labels, pred_scores, labels, batch_size, f_dir:str = "", save_as_file:bool = False):
+    index_name = 1
     for batch_id, image_data in enumerate(dataset):
         imgs, _, _ = image_data
         img_size = imgs.shape[1]
@@ -84,7 +146,11 @@ def draw_predictions(dataset, pred_bboxes, pred_labels, pred_scores, labels, bat
         batch_bboxes, batch_labels, batch_scores = pred_bboxes[start:end], pred_labels[start:end], pred_scores[start:end]
         for i, img in enumerate(imgs):
             denormalized_bboxes = bbox_utils.denormalize_bboxes(batch_bboxes[i], img_size, img_size)
-            draw_bboxes_with_labels(img, denormalized_bboxes, batch_labels[i], batch_scores[i], labels)
+            if save_as_file:
+                save_pred_bbox(index_name, img, denormalized_bboxes, batch_labels[i], batch_scores[i], labels, f_dir)
+                index_name = index_name+1
+            else:
+                draw_bboxes_with_labels(img, denormalized_bboxes, batch_labels[i], batch_scores[i], labels)
 
 def infer_draw_predictions(imgs, pred_bboxes, pred_labels, pred_scores, labels, return_img:bool = False):
     imgs = tf.squeeze(imgs)

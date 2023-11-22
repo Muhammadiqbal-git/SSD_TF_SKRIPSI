@@ -49,10 +49,7 @@ def update_stats(pred_bboxes, pred_labels, pred_scores, gt_boxes, gt_labels, sta
     # print("gt labels {}".format(tf.reshape(gt_labels, (-1,))))
     #
     count_holder = tf.unique_with_counts(tf.reshape(gt_labels, (-1,)))
-
-    count_pred_holder = tf.unique_with_counts(tf.reshape(pred_labels, (-1)))
     total_gtbox_batch = 0
-    total_predbox_batch = 0
     for i, gt_label in enumerate(count_holder[0]):
         if gt_label == -1:
             continue
@@ -60,6 +57,7 @@ def update_stats(pred_bboxes, pred_labels, pred_scores, gt_boxes, gt_labels, sta
         stats[gt_label]["total"] += int(count_holder[2][i])
         stats[gt_label]["fn"] += count_holder[2][i]
         total_gtbox_batch += count_holder[2][i]
+        print("total {}".format(stats[gt_label]["total"]))
     for batch_idx, m in enumerate(merged_iou_map):
         true_labels = []
         # pred_bboxes_number = tf.where(gt_labels, pred_bboxes, tf.zeros_like)
@@ -117,14 +115,14 @@ def calculate_mAP(stats):
         accumulated_fp = np.cumsum(fp[ids])
         recall = accumulated_tp / total
         precision = accumulated_tp / (accumulated_fp + accumulated_tp)
-        # print("tplen {}".format(len(tp)))
-        # print("tp {}".format(np.sum(tp)))
-        # print("fn {}".format(label_stats["fn"]))
-        # print("fplen {}".format(len(fp)))
-        # print("fp {}".format(np.sum(fp)))
-        # print("scores {}".format(scores[ids]))
-        # print("tp {}".format(accumulated_tp))
-        # print("fp {}".format(accumulated_fp))
+        print("tplen {}".format(len(tp)))
+        print("tp {}".format(np.sum(tp)))
+        print("fn {}".format(label_stats["fn"]))
+        print("fplen {}".format(len(fp)))
+        print("fp {}".format(np.sum(fp)))
+        print("scores {}".format(scores[ids]))
+        print("tp {}".format(accumulated_tp))
+        print("fp {}".format(accumulated_fp))
         ap = calculate_ap(recall, precision)
         stats[label]["recall"] = recall
         stats[label]["precision"] = precision

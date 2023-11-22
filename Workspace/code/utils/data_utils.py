@@ -25,7 +25,6 @@ def preprocessing(data, final_height, final_width, augmentation_fn=None, evaluat
     img = tf.image.convert_image_dtype(data["image"], tf.float32)
     gt_boxes = data["objects"]["bbox"]
     gt_labels = tf.cast(data["objects"]["label"] + 1, tf.int32)
-    print(img)
     img = tf.image.resize(img, (final_height, final_width))
     if evaluate:
         not_diff = tf.logical_not(data["objects"]["is_difficult"])
@@ -41,25 +40,16 @@ def preview_data(dataset):
     fig, ax = plt.subplots(ncols=n_data, figsize=(20, 20))
     for idx, data in enumerate(dataset.take(n_data)):
         print("image of ", idx+1)
-        print(data["image"].shape)
-        print(data["image"][300, 300, :])
-        image = tf.image.convert_image_dtype(data["image"], tf.float32)
-        print(image[300, 300, :])
-        print("labels = {}".format(data["labels"]))
-        print("label = {}".format(data["objects"]["label"]))
-        print("bbox")
-        print(data["objects"]["bbox"])
-        print("ss")
-        bboxs = data["objects"]["bbox"]  # [ymin, xmax, ymax, xmax]
-        height = data["image"].shape[0]
-        width = data["image"].shape[1]
+        image = data[0]
+        bboxs = data[1]  # [ymin, xmax, ymax, xmax]
+        height = image.shape[0]
+        width = image.shape[1]
         image_bgr = cv2.cvtColor(image.numpy(), cv2.COLOR_RGB2BGR)
         for bbox in bboxs:
             ymin = bbox[0]*height
             xmin = bbox[1]*width
             ymax = bbox[2]*height
             xmax = bbox[3]*width
-
             cv2.rectangle(
                 image_bgr,
                 (int(xmin), int(ymin)),
@@ -203,13 +193,12 @@ def get_custom_imgs(custom_image_path, pengujian):
         for filename in os.listdir(custom_image_path):
             if filename.endswith(".json"):
                 continue
-            img_paths.append(os.path.join(custom_image_path, filename))
+            if filename.endswith(".jpeg"):
+                img_paths.append(os.path.join(custom_image_path, filename))
     else:
-        for path, dir, filenames in os.walk(custom_image_path):
-            for filename in filenames:
-
-                img_paths.append(os.path.join(path, filename))
-            break
+        for filename in os.listdir(custom_image_path):
+            if filename.endswith(".jpeg"):
+                img_paths.append(os.path.join(custom_image_path, filename ))
     return img_paths
 
 
@@ -245,8 +234,6 @@ def custom_data_generator(img_paths, final_height, final_width, labels, with_lab
     dict_label = {}
     for idx, label in enumerate(labels):
         dict_label[label] = idx 
-        print("aaa")
-        print(dict_label)
     for img_path in img_paths:
         json_path = img_path.replace(".jpeg", ".json")
         image = Image.open(img_path)

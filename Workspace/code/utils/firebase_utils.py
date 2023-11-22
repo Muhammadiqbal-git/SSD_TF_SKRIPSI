@@ -6,9 +6,9 @@ import os
 cred = credentials.Certificate(os.getenv("GOOGLE_APPLICATION_CREDENTIALS")) # add your Credentials keys path to sys environtment
 initialize_app(credential=cred)
 
-model_f_name = '12_2023-11-02_mobilenet_v2_Id-88.h5'
+model_f_name = '22_2023-11-22_mobilenet_v2_ID-29.h5'
 
-model_dir = os.path.join('D:\\', '1.Skripsi', 'SSD_VGG_TF_SKRIPSI', 'Workspace', 'trained_model')
+model_dir = os.path.join('D:\\', '1.Skripsi', 'SSD_TF_SKRIPSI', 'Workspace', 'trained_model')
 model_path = os.path.join(model_dir, model_f_name)
 model_size = os.path.getsize(model_path)
 print(model_path)
