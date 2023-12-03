@@ -49,20 +49,12 @@ if with_voc_2012 and not use_custom_dataset:
 
 labels = data_utils.get_labels(info)
 labels = ["background"] + labels
-# labels = ["backgrosund"] + labels
-# labels = ["backgroasund"] + labels
-
-
 print(labels)
 
 hyper_params["total_labels"] = len(labels)
 img_size = hyper_params["img_size"]
 
 train_data = train_data.map(lambda x : data_utils.preprocessing(x, img_size[1], img_size[0], augmentator.apply))
-# for i, data in enumerate(train_data):
-#     print(data)
-#     if i == 1:
-#         break
 val_data = val_data.map(lambda x : data_utils.preprocessing(x, img_size[1], img_size[0]))
 
 data_shapes = data_utils.get_data_shapes()
@@ -71,7 +63,6 @@ train_data = train_data.shuffle(BATCH_SIZE*4).padded_batch(BATCH_SIZE, padded_sh
 val_data = val_data.padded_batch(BATCH_SIZE, padded_shapes=data_shapes, padding_values=padding_values)
 #
 ssd_model = get_model(hyper_params)
-# ssd_model.summary()
 ssd_custom_losses = SSDLoss(hyper_params["neg_pos_ratio"], hyper_params["loc_loss_alpha"])
 ssd_model.compile(optimizer=Adam(learning_rate=1e-3),
                   loss=[ssd_custom_losses.loc_loss_fn, ssd_custom_losses.conf_loss_fn])

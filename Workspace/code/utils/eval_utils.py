@@ -29,15 +29,6 @@ def update_stats(pred_bboxes, pred_labels, pred_scores, gt_boxes, gt_labels, sta
     iou_map = bbox_utils.compute_iou(pred_bboxes, gt_boxes)
     merged_iou_map = tf.reduce_max(iou_map, axis=-1)
     max_indices_each_gt = tf.argmax(iou_map, axis=-1, output_type=tf.int32)
-    # print("iou {}".format(iou_map[:, :5]))
-    # print("merged iou {}".format(merged_iou_map.shape))
-    # print("merged iou {}".format(merged_iou_map[:, :5]))
-    # print("indices gt {}".format(max_indices_each_gt.shape))
-    # print("indices gt {}".format(max_indices_each_gt[:, :10]))
-    # sort base from most intersect bbox
-    sorted_idxs = tf.argsort(merged_iou_map, direction="DESCENDING")
-    test = tf.greater(merged_iou_map, 0.5)
-    # print("test {}".format(test[:, :5]))
     scores_s = tf.where(tf.greater(merged_iou_map, 0), pred_scores, tf.zeros_like(pred_scores))
     sorted_idx_score = tf.argsort(scores_s, direction="DESCENDING")
     # print("sorted iou {}".format(sorted_idxs.shape))
@@ -60,7 +51,6 @@ def update_stats(pred_bboxes, pred_labels, pred_scores, gt_boxes, gt_labels, sta
         print("total {}".format(stats[gt_label]["total"]))
     for batch_idx, m in enumerate(merged_iou_map):
         true_labels = []
-        # pred_bboxes_number = tf.where(gt_labels, pred_bboxes, tf.zeros_like)
         for i, sorted_idx in enumerate(sorted_idx_score[batch_idx]):
             pred_label = pred_labels[batch_idx, sorted_idx]
             if pred_label == 0:
@@ -72,18 +62,15 @@ def update_stats(pred_bboxes, pred_labels, pred_scores, gt_boxes, gt_labels, sta
             gt_label = int(gt_labels[batch_idx, gt_idx])
 
             score = pred_scores[batch_idx, sorted_idx]
-            # print(score)
             stats[pred_label]["scores"].append(score)
             stats[pred_label]["tp"].append(0)
             stats[pred_label]["fp"].append(0)
-            # print("i {}".format(i))
             if iou >= 0.5 and pred_label == gt_label and gt_idx not in true_labels:
                 stats[pred_label]["tp"][-1] = 1
                 true_labels.append(gt_idx)
                 stats[pred_label]["fn"] -= 1
             else:
                 stats[pred_label]["fp"][-1] = 1
-            stats[pred_label]["tp"]
             #
         #
     #
