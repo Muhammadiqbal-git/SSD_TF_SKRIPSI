@@ -20,8 +20,8 @@ else:
 BATCH_SIZE = 4
 EVAL_mAP = True
 PENGUJIAN = True
-use_custom_dataset = True
 use_custom_images = True
+use_custom_dataset = True
 hyper_params = train_utils.get_hyper_params(backbone)
 
 custom_data_dir = data_utils.get_data_dir("custom_dataset")
@@ -72,10 +72,16 @@ if PENGUJIAN:
             draw_utils.draw_predictions(test_data, pred_bboxes, pred_labels, pred_scores, labels, BATCH_SIZE, f_dir=f_dir, save_as_file=True)
 else:
     print("total data {}".format(total_items))
-    img_paths = data_utils.get_custom_imgs(custom_img_dir, False)
-    test_data = tf.data.Dataset.from_generator(lambda: data_utils.custom_data_generator(img_paths, img_size[1], img_size[0], labels, PENGUJIAN), data_types, data_shapes)
+    if use_custom_images:
+        img_paths = data_utils.get_custom_imgs(custom_img_dir, False)
+        test_data = tf.data.Dataset.from_generator(lambda: data_utils.custom_data_generator(img_paths, img_size[1], img_size[0], labels, PENGUJIAN), data_types, data_shapes)
+    else:
+        test_data = test_data.map(lambda x : data_utils.preprocessing(x, img_size[1], img_size[0]))
     test_data = test_data.padded_batch(BATCH_SIZE, padded_shapes=data_shapes, padding_values=padding_values)
     step_size = train_utils.get_step_size(total_items, BATCH_SIZE)
+    # test_data = test_data.take(2)
+    # for data in test_data:
+    #     print(test_data)
     pred_bboxes, pred_scores, pred_labels = ssd_decoder_model.predict(test_data, steps=step_size, verbose=1)
     if EVAL_mAP:
         eval_utils.evaluate_predictions(test_data, pred_bboxes, pred_labels, pred_scores, labels, BATCH_SIZE)

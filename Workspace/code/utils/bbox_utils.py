@@ -157,12 +157,15 @@ def generate_base_anchors(aspect_ratios, feature_map_index, total_feature_map):
     Args:
         aspect_ratios : for all feature map shapes + 1 for ratio 1
         feature_map_index : nth feature maps for scale calculation
-        total_feature_map : length of all using feature map for detections, 6 for ssd300
+        total_feature_map : length of all using feature map for detections, 6 for ssd
 
     Returns:
         base_anchors : (anchor_count, [y1, x1, y2, x2])
     """
     current_scale = scale_for_k_feature_map(feature_map_index, m=total_feature_map)
+    # print(current_scale)
+    # print(feature_map_index)
+    # print("aaa")
     next_scale = scale_for_k_feature_map(feature_map_index + 1, m=total_feature_map)
     base_anchors = []
     for aspect_ratio in aspect_ratios:
@@ -172,6 +175,7 @@ def generate_base_anchors(aspect_ratios, feature_map_index, total_feature_map):
     # 1 extra pair for ratio 1
     height = width = tf.sqrt(current_scale * next_scale)
     base_anchors.append([-height / 2, -width / 2, height / 2, width / 2])
+    # print(base_anchors)
     return tf.cast(base_anchors, dtype=tf.float32)
 
 
@@ -187,6 +191,7 @@ def generate_anchors(feature_map_shapes, aspect_ratios):
     """
     anchors = []
     for i, feature_map_shape in enumerate(feature_map_shapes):
+        # print(f"index {i}")
         base_anchors = generate_base_anchors(
             aspect_ratios[i], i + 1, len(feature_map_shapes)
         )
@@ -196,18 +201,33 @@ def generate_anchors(feature_map_shapes, aspect_ratios):
             tf.range(0, feature_map_shape) / feature_map_shape + stride / 2,
             dtype=tf.float32,
         )
+        # print(feature_map_shape)
+        # print(stride)
+        # print(grid_coords)
+
         grid_x, grid_y = tf.meshgrid(grid_coords, grid_coords)
+        # print(grid_x)
+        # print(grid_y)
+
         flat_grid_x, flat_grid_y = tf.reshape(grid_x, (-1,)), tf.reshape(grid_y, (-1,))
         #
+        # print(flat_grid_x)
+        # print(flat_grid_y)
         grid_map = tf.stack([flat_grid_y, flat_grid_x, flat_grid_y, flat_grid_x], -1)
         #
+        # print(grid_map)
+
         anchors_for_feature_map = tf.reshape(base_anchors, (1, -1, 4)) + tf.reshape(
             grid_map, (-1, 1, 4)
         )
         anchors_for_feature_map = tf.reshape(anchors_for_feature_map, (-1, 4))
+        # print(tf.reshape(base_anchors, (1, -1, 4)))
+        # print(tf.reshape(grid_map, (1, -1, 4)))
+
         #
         anchors.append(anchors_for_feature_map)
     anchors = tf.concat(anchors, axis=0)
+    # print("asdasd")
     return tf.clip_by_value(anchors, 0, 1)
 
 

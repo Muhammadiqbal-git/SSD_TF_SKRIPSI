@@ -12,7 +12,7 @@ if args.handle_gpu:
     io_utils.handle_gpu_compatibility()
 
 BATCH_SIZE = 4
-EPOCHS = 50
+EPOCHS = 1
 with_voc_2012 = False
 use_custom_dataset = True
 overwrite_dataset = False

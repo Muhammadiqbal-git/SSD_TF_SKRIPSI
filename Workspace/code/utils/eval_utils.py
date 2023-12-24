@@ -114,8 +114,8 @@ def calculate_mAP(stats):
         stats[label]["recall"] = recall
         stats[label]["precision"] = precision
         stats[label]["AP"] = ap
-        # print("precision {}".format(stats[label]["precision"]))
-        # print("RECALL {}".format(stats[label]["recall"]))
+        print("precision {}".format(stats[label]["precision"]))
+        print("RECALL {}".format(stats[label]["recall"]))
         aps.append(ap)
     mAP = np.mean(aps)
     return stats, mAP
